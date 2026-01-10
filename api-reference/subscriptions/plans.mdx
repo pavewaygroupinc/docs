@@ -1,0 +1,58 @@
+---
+title: "Subscription Plans"
+description: "Manage recurring billing tiers and pricing structures."
+api: "POST /subscriptions/plans"
+---
+
+Plans define the cost and frequency of a recurring charge.
+
+### Create a Plan
+`POST /subscriptions/plans`
+
+<ParamField body="name" type="string" required>
+  Name shown to customers (e.g., "Silver Monthly").
+</ParamField>
+
+<ParamField body="code" type="string" required>
+  Unique slug for your plan (e.g., `silver_v1`).
+</ParamField>
+
+<ParamField body="amount" type="number" required>
+  Price per period.
+</ParamField>
+
+<ParamField body="currency" type="string" default="XAF">
+  `XAF`, `NGN`, `USD`, etc.
+</ParamField>
+
+<ParamField body="billing_cycle" type="string" required>
+  Frequency: `daily`, `weekly`, `monthly`, `quarterly`, `yearly`.
+</ParamField>
+
+<ParamField body="trial_days" type="integer" default="0">
+  Number of free trial days before the first charge.
+</ParamField>
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "data": {
+    "id": "658dc...",
+    "name": "Silver Monthly",
+    "code": "silver_v1",
+    "amount": 5000,
+    "currency": "XAF",
+    "billing_cycle": "monthly"
+  }
+}
+```
+</ResponseExample>
+
+---
+
+### List Plans
+`GET /subscriptions/plans`
+
+### Deactivate Plan
+`DELETE /subscriptions/plans/{id}`

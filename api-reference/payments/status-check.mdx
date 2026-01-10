@@ -1,0 +1,49 @@
+---
+title: "Check Payment Status"
+api: "PATCH /payment-verification/{reference}/verify"
+description: "Lightweight endpoint for polling payment status."
+---
+
+Use this endpoint to poll the current status of a PaymentIntent. It is optimized for high-frequency polling from frontends or mobile apps while a customer is completing a payment.
+
+### Path Parameters
+
+<ParamField path="reference" type="string" required>
+  The payment_ref or the merchant_reference of the PaymentIntent to check.
+</ParamField>
+
+### Response
+
+Returns the current status and basic transaction info.
+
+<ResponseField name="status" type="string">
+  The current status: `requires_action`, `processing`, `succeeded`, `failed`, `canceled`.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  The transaction amount.
+</ResponseField>
+
+<ResponseField name="currency" type="string">
+  The currency code.
+</ResponseField>
+
+<ResponseField name="id" type="string">
+  The unique transaction ID.
+</ResponseField>
+
+<ResponseExample>
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "658dc...",
+    "status": "succeeded",
+    "amount": "10000",
+    "currency": "XAF",
+    "created_at": "2024-01-01T12:00:00Z"
+  }
+}
+```
+</ResponseExample>

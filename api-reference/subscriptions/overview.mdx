@@ -1,0 +1,27 @@
+---
+title: "Subscriptions Overview"
+description: "Automate recurring payments with PaveWay's billing engine."
+---
+
+PaveWay's Subscription API allows you to charge customers on a recurring basis (monthly, weekly, or daily). We support both card-based auto-billing and mobile-money scheduled prompts.
+
+## Key Concepts
+
+- **Plans**: Define the logic for your subscription (amount, currency, billing cycle).
+- **Subscriptions**: The link between a customer and a plan.
+- **Invoices**: Generated automatically for each billing period.
+- **Fallback Payment Methods**: Automatically switch to an alternative (e.g., from Mobile Money to Card) if the primary method fails.
+
+## Payment Methods
+
+| Method | Mechanism |
+| :--- | :--- |
+| **Cards** | Automatic charges using saved Stripe or Flutterwave tokens. |
+| **Mobile Money** | Scheduled USSD prompts sent to the customer's phone at their **Preferred Time**. |
+
+## Billing Cycle
+
+PaveWay supports the following billing cycles:
+- `daily`: Billed every 24 hours.
+- `weekly`: Billed every 7 days.
+- `monthly`: Billed once a month.

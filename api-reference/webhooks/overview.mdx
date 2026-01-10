@@ -1,0 +1,59 @@
+---
+title: "Webhooks Overview"
+description: "Receive real-time notifications when events happen in your PaveWay account."
+---
+
+Webhooks allow you to receive real-time notifications about events in your PaveWay account. When an event occurs (e.g., a payment succeeds or an eSIM is provisioned), PaveWay sends an HTTP POST request to your configured webhook endpoint.
+
+## Configuration
+
+You can configure your webhook endpoints in the **Business Dashboard**.
+
+1.  **URL**: Must be an `https://` endpoint.
+2.  **Events**: Select the specific events you want to listen to (e.g., `payment.succeeded`).
+3.  **Secret**: PaveWay provides a **Signing Secret** (`whsec_...`) for each endpoint to verify request authenticity.
+
+## Common Event Types
+
+| Event | Description |
+| :--- | :--- |
+| `payment.succeeded` | Triggered when a PaymentIntent status changes to `succeeded`. |
+| `payment.failed` | Triggered when a payment attempt fails. |
+| `order.completed` | Triggered when an eSIM or other financial service order is successfully provisioned. |
+| `payout.failed` | Triggered if a scheduled payout to your bank/wallet fails. |
+
+## Retry Policy
+
+If your server returns anything other than a `2xx` status code, PaveWay will retry the notification with exponential backoff:
+
+- Retries occur up to 10 times over 24 hours.
+- If an endpoint fails consistently for 7 days, it will be automatically disabled.
+
+## Receiving a Webhook
+
+Your endpoint should be prepared to handle a POST request with a JSON body.
+
+```json
+{
+  "event_type": "payment.succeeded",
+  "business_id": "bus_123...",
+  "resource_type": "transaction",
+  "resource_id": "658dc...",
+  "timestamp": "2024-01-01T12:00:00.000Z",
+  "request_id": "req_abc123",
+  "data": {
+    "id": "658dc...",
+    "payment_ref": "PWG_abc123",
+    "amount": "5000",
+    "currency": "XAF",
+    "status": "succeeded",
+    "customer": {
+        "email": "customer@example.com"
+    },
+    "metadata": {}
+  }
+}
+```
+
+> [!IMPORTANT]
+> You should always verify the signature of the webhook before processing the payload. See our [Signature Verification](/api-reference/webhooks/verification) guide.

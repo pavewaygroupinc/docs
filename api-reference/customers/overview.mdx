@@ -1,0 +1,23 @@
+---
+title: "Customers Overview"
+description: "Manage shopper profiles and link saved payment methods."
+---
+
+The Customers API is the central hub for managing shopper profiles within PaveWay. By creating customer records, you can:
+
+1.  **Simplify Checkout**: Link [Card Tokens](/api-reference/payments/card-tokens) to a customer's email to enable one-click payments.
+2.  **Manage Subscriptions**: All [Subscriptions](/api-reference/subscriptions/overview) are linked to a specific customer ID.
+3.  **Track History**: Monitor transaction history and balances for individual shoppers.
+
+### The Customer Object
+
+A customer object represents a unique person or business purchasing from your platform. It stores contact information, billing/shipping addresses, and metadata.
+
+#### Identification
+Customers are primarily identified by their unique `id`. However, for integrations like checkout, they are often looked up or linked via their **email** or **phone number**.
+
+#### Saved Payment Methods
+When a card is [tokenized](/api-reference/payments/card-tokens), if an email address is provided, it is automatically linked to any customer profile with that same email. This allows you to retrieve a customer's saved cards without storing sensitive data.
+
+### Authentication
+All Customer API endpoints require your **Secret Key** in the `Authorization` header as a Bearer token.

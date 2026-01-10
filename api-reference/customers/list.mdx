@@ -1,0 +1,48 @@
+---
+title: "List Customers"
+api: "GET /customers"
+description: "Retrieve a list of all customers associated with your business."
+---
+
+Returns a list of your customers. The customers are returned sorted by creation date, with the most recent appearing first.
+
+### Authentication
+Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+### Response
+
+The response is a JSON object with a `data` field containing an array of customer objects.
+
+#### Customer Object Fields
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | string | Unique identifier for the customer. |
+| `firstname` | string | Customer's first name. |
+| `lastname` | string | Customer's last name. |
+| `email` | string | Customer's email address. |
+| `phone` | string | Customer's phone number. |
+| `balance` | number | Current account balance for the customer (in smallest currency unit). |
+| `active` | boolean | Whether the customer profile is currently active. |
+| `created_at` | timestamp | Unix timestamp when the customer was created. |
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "response_type": "success",
+  "data": [
+    {
+      "id": "658dc...",
+      "firstname": "John",
+      "lastname": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "237612345678",
+      "balance": 0,
+      "active": true,
+      "created_at": 1704873600
+    }
+  ]
+}
+```
+</ResponseExample>

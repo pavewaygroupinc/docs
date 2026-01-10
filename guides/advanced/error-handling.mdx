@@ -1,0 +1,90 @@
+---
+title: "Error Handling"
+description: "Understand PaveWay's error codes and how to handle them gracefully."
+---
+
+PaveWay uses standard HTTP response codes to indicate the success or failure of an API request. In general:
+- Codes in the `2xx` range indicate success.
+- Codes in the `4xx` range indicate an error that failed given the information provided (e.g., a required parameter was omitted, a charge failed, etc.).
+- Codes in the `5xx` range indicate an error with PaveWay's servers.
+
+## internal Error Object
+
+When an error occurs, the response body will contain a standardized `error` object.
+
+```json
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "parameter_invalid",
+    "message": "The 'amount' field must be a positive integer.",
+    "param": "amount",
+    "request_id": "req_abc123"
+  }
+}
+```
+
+### Attributes
+
+<ResponseField name="type" type="string" required>
+  The type of error returned. Can be one of: `api_error`, `card_error`, `idempotency_error`, or `invalid_request_error`.
+</ResponseField>
+
+<ResponseField name="code" type="string">
+  For some errors that could be handled programmatically, a short string indicating the error code reported.
+</ResponseField>
+
+<ResponseField name="message" type="string" required>
+  A human-readable message providing more details about the error. For card errors, these messages can be shown to your users.
+</ResponseField>
+
+<ResponseField name="param" type="string">
+  If the error is parameter-specific, the parameter related to the error. For example, for a card error, this could be `card_number`.
+</ResponseField>
+
+<ResponseField name="request_id" type="string">
+  The ID of the request that generated the error. Helpful for debugging and support.
+</ResponseField>
+
+---
+
+## Error Types
+
+| Type | Description |
+| :--- | :--- |
+| `api_error` | Unexpected internal server error. Retry the request. |
+| `card_error` | Card errors are the most common type of error when processing payments. They occur when the user's card issuer declines a charge, or if the card is improperly authenticated. |
+| `idempotency_error` | Occurs when an `Idempotency-Key` is reused for a different request payload. keys must be unique. |
+| `invalid_request_error` | Occurs when a request has invalid parameters. |
+| `authentication_error` | Occurs when authentication fails (missing or invalid API key). |
+| `rate_limit_error` | Occurs if you make too many requests too quickly. |
+
+---
+
+## Common Error Codes
+
+### Payment & Card Errors
+
+| Code | Description |
+| :--- | :--- |
+| `card_declined` | The card has been declined. |
+| `insufficient_funds` | The card has insufficient funds to complete the purchase. |
+| `expired_card` | The card has expired. |
+| `incorrect_cvc` | The CVC code is incorrect. |
+| `processing_error` | An error occurred while processing the card. |
+| `provider_error` | The upstream payment provider is experiencing issues. |
+
+### Validation Errors
+
+| Code | Description |
+| :--- | :--- |
+| `parameter_invalid` | One or more parameters are invalid. Check the `param` field or `details` array (for validation errors). |
+| `parameter_missing` | A required parameter is missing. |
+| `resource_not_found` | The requested resource ID (e.g., customer, payment intent) does not exist. |
+| `resource_already_exists` | You are trying to create a resource that already exists (e.g., duplicate customer email). |
+
+### Idempotency Errors
+
+| Code | Description |
+| :--- | :--- |
+| `idempotency_key_in_use` | The idempotency key has already been used for a different request. |

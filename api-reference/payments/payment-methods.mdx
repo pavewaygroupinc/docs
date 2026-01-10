@@ -1,0 +1,98 @@
+---
+title: "Payment Methods"
+description: "Discover available payment options and calculate transaction fees."
+---
+
+The Payment Methods API allows you to programmatically determine which payment options (Mobile Money, Cards, etc.) are available for a specific region and calculate the exact fees associated with a transaction.
+
+## List Available Methods
+
+Retrieve active payment methods supported for a specific country.
+
+### API Endpoint
+`GET /payment-methods`
+
+### Query Parameters
+
+<ParamField query="country_code" type="string" default="CM">
+  The two-letter ISO country code (e.g., `CM`, `CI`, `SN`, `GH`). This filters the methods to those available in the specified region.
+</ParamField>
+
+### Response
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "response_type": "success",
+  "data": [
+    {
+      "id": "paveway_mobile_money",
+      "name": "Mobile Money",
+      "active": true,
+      "fee_type": "percentage",
+      "supported_countries": ["CM"]
+    },
+    {
+      "id": "paveway_card",
+      "name": "Credit/Debit Card",
+      "active": true,
+      "fee_type": "percentage",
+      "supported_countries": ["CM"]
+    }
+  ],
+  "message": "Successfully fetched payment methods"
+}
+```
+</ResponseExample>
+
+---
+
+## Calculate Transaction Fees
+
+Get a detailed breakdown of the fees for a specific amount, currency, and payment method.
+
+### API Endpoint
+`GET /payment-methods/fee/{payment_method}/{currency}/{amount}`
+
+### Path Parameters
+
+<ParamField path="payment_method" type="string" required>
+  The code of the payment method (e.g., `mobile_money`, `card`).
+</ParamField>
+
+<ParamField path="currency" type="string" required>
+  Three-letter ISO currency code (e.g., `XAF`, `USD`).
+</ParamField>
+
+<ParamField path="amount" type="number" required>
+  The transaction amount.
+</ParamField>
+
+### Query Parameters
+
+<ParamField query="country_code" type="string">
+  ISO country code where the transaction is taking place. This can affect local vs. international fee rules.
+</ParamField>
+
+<ParamField query="card_type" type="string" default="local">
+  For `card` payments, specify if the card is `local` or `international`.
+</ParamField>
+
+### Response
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "response_type": "success",
+  "data": {
+    "amount": 10000,
+    "currency": "XAF",
+    "fee": 150,
+    "total_payable": 10150
+  },
+  "message": "Successfully calculated fees"
+}
+```
+</ResponseExample>

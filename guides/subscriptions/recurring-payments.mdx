@@ -1,0 +1,61 @@
+---
+title: "Recurring Payments"
+description: "Implement subscriptions and recurring billing in your application."
+---
+
+PaveWay's subscription engine allows you to automate billing for your customers. This guide covers how to set up recurring payments using both Mobile Money and Cards.
+
+## How it Works
+
+1.  **Define a Plan**: Create a plan that defines the price, currency, and billing interval (daily, weekly, monthly).
+2.  **Choose a Payment Method**:
+    - **Card**: Uses a saved token from a previous payment to charge the customer automatically.
+    - **Mobile Money**: Sends a USSD prompt to the customer's phone at a **Preferred Time** (e.g., 6 PM daily).
+3.  **Subscribe the Customer**: Create a subscription object linking the customer to the plan.
+4.  **Automatic Invoicing**: PaveWay generates invoices and attempts collection automatically according to the cycle.
+
+---
+
+## Integration Steps
+
+### 1. Create a Subscription Plan
+Use the [Plans API](/api-reference/subscriptions/plans) to define your tiers.
+
+```bash
+POST /v1/subscriptions/plans
+{
+  "name": "Standard Monthly",
+  "code": "std-mth",
+  "amount": 5000,
+  "billing_cycle": "monthly"
+}
+```
+
+### 2. Set Up the Primary Payment Method
+
+#### Card Subscriptions
+To use card-based auto-pay, you must first have a saved `card_token` from a successful [PaymentIntent](/api-reference/payments/create-intent) where `setup_future_usage` was enabled.
+
+#### Mobile Money Subscriptions
+Mobile money subscriptions don't require pre-authorization. You just need the customer's phone number and their preferred window for receiving payment prompts.
+
+```json
+"preferred_time": {
+  "hour": 18,
+  "minute": 0,
+  "timezone": "Africa/Douala"
+}
+```
+
+### 3. Handle Ongoing Subscriptions
+Use [Webhooks](/api-reference/webhooks/overview) to listen for `invoice.paid` or `subscription.canceled` events. 
+
+> [!TIP]
+> Always configure a **Fallback Payment Method**. If a mobile money prompt fails (e.g., customer has no funds), PaveWay can automatically attempt to charge a secondary card if defined.
+
+---
+
+## Managing Lifecycle
+- **Pausing**: Stop billing temporarily (e.g., during a service outage).
+- **Grace Periods**: Configured in your dashboard to allow retries before cancellation.
+- **Upgrades/Downgrades**: Update the `plan_id` on the subscription object.

@@ -1,0 +1,154 @@
+---
+title: "Create a PaymentIntent"
+api: "POST /payment-intents"
+description: "Creates a new PaymentIntent object to begin the payment process."
+---
+
+Creates a PaymentIntent object. After the PaymentIntent is created, attach a payment method and confirm to continue the payment.
+
+### Authentication
+Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+### Request Body
+
+#### Customer Information
+<ParamField body="firstname" type="string" required>
+  Customer's first name.
+</ParamField>
+
+<ParamField body="lastname" type="string" required>
+  Customer's last name.
+</ParamField>
+
+<ParamField body="email" type="string">
+  Customer's email address. Required if `phone` is not provided. Used for sending receipts and linking saved payment methods.
+</ParamField>
+
+<ParamField body="phone" type="string">
+  Customer's phone number with country prefix (e.g., `237612345678`). Required if `email` is not provided.
+</ParamField>
+
+#### Payment Details
+<ParamField body="amount" type="string" required>
+  Amount in the smallest currency unit. e.g., "1000" for 1000 XAF. This should be a string to maintain precision.
+</ParamField>
+
+<ParamField body="currency" type="string" default="XAF">
+  Three-letter ISO currency code. e.g., `XAF`, `NGN`, `USD`.
+</ParamField>
+
+<ParamField body="description" type="string" required>
+  A brief description of the transaction, often shown on the customer's bank statement or receipt.
+</ParamField>
+
+<ParamField body="merchant_reference" type="string" required>
+  Your unique identifier for the transaction. This is used for reconciliation and prevents duplicate charges via idempotency.
+</ParamField>
+
+#### Configuration
+<ParamField body="fee_bearer" type="string" default="merchant">
+  Specifies who bears the transaction fees. 
+  - `merchant`: (Default) Fees are deducted from the payout amount you receive. The customer pays exactly the `amount`.
+  - `customer`: Fees are added on top of the `amount`. The customer pays `amount + fees`, and you receive the full `amount`.
+</ParamField>
+
+<ParamField body="confirmation_method" type="string" default="automatic">
+  How the payment should be confirmed.
+  - `automatic`: (Default) Suitable for hosted checkout pages.
+  - `manual`: Requires a separate server-side confirmation call.
+</ParamField>
+
+<ParamField body="confirm" type="boolean" default="false">
+  Set to `true` to immediately attempt to confirm the PaymentIntent if a payment method is already attached or provided.
+</ParamField>
+
+<ParamField body="items" type="array">
+  An array of objects representing line items in the order. Each item should have `name`, `price`, `currency`, and `quantity`.
+</ParamField>
+
+<ParamField body="redirect_url" type="string">
+  The URL to redirect the customer to after they complete the payment on a external gateway or hosted page.
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Set of key-value pairs that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+</ParamField>
+
+<ParamField body="collect_shipping_address" type="boolean" default="false">
+  Whether to prompt the customer for a shipping address during the checkout process.
+</ParamField>
+
+<ParamField body="payment_method_types" type="array">
+  The list of payment method types (e.g., `['card', 'mobile_money']`) that this PaymentIntent is allowed to use.
+</ParamField>
+
+### Response
+
+<ResponseField name="id" type="string">
+  Unique identifier for the PaymentIntent.
+</ResponseField>
+
+<ResponseField name="object" type="string">
+  String representing the object's type. Objects of the same type share the same value. Value is `payment_intent`.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  Amount intended to be collected, in the smallest currency unit (e.g., "1000" for 1000 XAF).
+</ResponseField>
+
+<ResponseField name="currency" type="string">
+  Three-letter ISO currency code.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status of the PaymentIntent: `requires_action`, `processing`, `succeeded`, `failed`, `canceled`.
+</ResponseField>
+
+<ResponseField name="client_secret" type="string">
+  The client secret of this PaymentIntent. Used for client-side retrieval and confirmation.
+</ResponseField>
+
+<ResponseField name="payment_ref" type="string">
+  PaveWay's unique public reference for this transaction (e.g., `PWG_...`).
+</ResponseField>
+
+<ResponseField name="merchant_reference" type="string">
+  Your unique identifier for the transaction.
+</ResponseField>
+
+<ResponseField name="checkout_url" type="string">
+  The URL to redirect your customer to for hosted checkout.
+</ResponseField>
+
+<ResponseField name="customer" type="object">
+  <Expandable title="properties">
+    <ResponseField name="firstname" type="string">Customer's first name.</ResponseField>
+    <ResponseField name="lastname" type="string">Customer's last name.</ResponseField>
+    <ResponseField name="email" type="string">Customer's email.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "response_type": "success",
+  "data": {
+    "id": "695e7cdf77f104409c0e5760",
+    "object": "payment_intent",
+    "amount": "1000",
+    "currency": "XAF",
+    "status": "requires_action",
+    "client_secret": "pi_695e7cdf..._secret_...",
+    "payment_ref": "PWG_d4e9cd66d451",
+    "checkout_url": "https://checkout.pavewaygroup.com/initpay/695e7cdf77f104409c0e5760?client_secret=...",
+    "customer": {
+      "firstname": "John",
+      "lastname": "Doe",
+      "email": "john@example.com"
+    },
+    "metadata": {}
+  }
+}
+```
+</ResponseExample>

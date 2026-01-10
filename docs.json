@@ -1,122 +1,138 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "PaveWay Developer Portal",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0164d5",
+    "light": "#02dcf9",
+    "dark": "#3730A3"
   },
   "favicon": "/favicon.svg",
+  "api": {
+    "mdx": {
+      "server": "https://api-sandbox.pavewaygroup.com/v1",
+      "auth": {
+        "method": "bearer"
+      }
+    },
+    "playground": {
+      "display": "interactive"
+    }
+  },
+  "anchors": [
+    {
+      "anchor": "Sandbox (Test)",
+      "url": "https://api-sandbox.pavewaygroup.com/v1",
+      "icon": "vial"
+    },
+    {
+      "anchor": "Production (Live)",
+      "url": "https://api.pavewaygroup.com/v1",
+      "icon": "rocket"
+    }
+  ],
   "navigation": {
     "tabs": [
       {
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Introduction",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "authentication"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Payment Collection",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "guides/payments/overview",
+              "guides/payments/web-integration",
+              "guides/payments/mobile-integration",
+              "guides/payments/local-currency"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Subscriptions",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "guides/subscriptions/recurring-payments"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Advanced",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/advanced/idempotency",
+              "guides/advanced/fees",
+              "guides/advanced/error-handling",
+              "guides/advanced/testing"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Payments API",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/payments/create-intent",
+              "api-reference/payments/charge-money",
+              "api-reference/payments/status-check",
+              "api-reference/payments/payment-methods",
+              "api-reference/payments/get-transaction",
+              "api-reference/payments/refunds"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Customers",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/customers/overview",
+              "api-reference/customers/list",
+              "api-reference/customers/get"
+            ]
+          },
+          {
+            "group": "Sessions",
+            "pages": [
+              "api-reference/sessions/create"
+            ]
+          },
+          {
+            "group": "Subscriptions API",
+            "pages": [
+              "api-reference/subscriptions/overview",
+              "api-reference/subscriptions/plans",
+              "api-reference/subscriptions/create",
+              "api-reference/subscriptions/manage"
+            ]
+          },
+          {
+            "group": "Financial Services API",
+            "pages": [
+              "api-reference/esim/list-plans",
+              "api-reference/esim/purchase"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/webhooks/overview",
+              "api-reference/webhooks/verification"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/pavewaygroup",
+      "linkedin": "https://linkedin.com/company/pavewaygroup",
+      "github": "https://github.com/pavewaygroup"
     }
   }
 }

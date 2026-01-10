@@ -1,0 +1,45 @@
+---
+title: "Testing & Sandbox"
+description: "Safely test your integration using our sandbox environment."
+---
+
+PaveWay provides a robust test environment where you can simulate successful and failed payments without moving any real money.
+
+## Test Environment
+
+- **Dashboard**: Use the "Test Mode" toggle in your Merchant Dashboard to view test transactions.
+- **Sandbox URL**: `https://api-sandbox.pavewaygroup.com/v1`
+- **Authentication**: All requests to the sandbox must use your `sk_test_...` key.
+
+---
+
+## Test Payment Methods
+
+### Cards
+
+Use the following cards to test different scenarios:
+
+| Card Number | Result |
+| :--- | :--- |
+| `4242 4242 4242 4242` | Success (Any CVV / Future Date) |
+| `4000 0000 0000 0002` | Insufficient Funds (Simulates 402 Error) |
+| `4000 0000 0000 0005` | 3D-Secure Required (Triggers OTP Modal) |
+
+### Mobile Money
+
+Simulate prompts by providing specific phone number patterns:
+
+| Phone Number | Network | Result |
+| :--- | :--- | :--- |
+| `237600000001` | MTN | Success after 10s delay. |
+| `237600000002` | ORANGE | Immediate Success. |
+| `237600000003` | MTN | Insufficient Funds (Failure). |
+
+---
+
+## Simulating Webhooks
+
+You can use the **Webhook Tester** in your dashboard to send mock events to your server. This allows you to verify your [Signature Verification](/api-reference/webhooks/verification) logic without making an actual API call.
+
+> [!TIP]
+> Use a tool like **ngrok** or **https://webhook.site** to tunnel your local server to a public URL so it can receive PaveWay's test webhooks during development.

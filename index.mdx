@@ -1,97 +1,69 @@
 ---
 title: "Introduction"
-description: "Welcome to the new home for your documentation"
+description: "PaveWay Developer Portal: The easiest way to collect payments and resell financial services."
 ---
 
-## Setting up
+Welcome to the PaveWay Developer Portal. Our platform enables businesses to integrate seamless local and global payment collections, as well as resell value-added services like eSIMs and Airtime.
 
-Get your documentation site up and running in minutes.
+## Prerequisites
+
+Before you can start using our APIs, ensure you have completed the following steps:
+
+1.  **Create a Business**: Sign up and create your business profile on the [PaveWay Business Portal](https://business.pavewaygroup.com).
+2.  **Enable 2FA**: For security, you must enable Two-Factor Authentication (2FA) under the **Security** tab in your [PaveWay Account](https://myaccount.pavewaygroup.com).
+3.  **Generate API Keys**: Once 2FA is enabled, navigate to the **API Settings** in your [PaveWay Account](https://myaccount.pavewaygroup.com) to generate your **Secret Key**, **Public Key**, and **Webhook Secret**.
+
+Once you have your keys, you can proceed to the [Authentication](/authentication) guide.
+
+## Get Started
+
+Everything you need to integrate PaveWay into your application.
+
+<Columns cols={2}>
+  <Card
+    title="Payment Collection"
+    icon="credit-card"
+    href="/guides/payments/overview"
+  >
+    Learn how to accept payments in multiple currencies across Africa and the globe.
+  </Card>
+  <Card
+    title="eSIM & Financial Services"
+    icon="sim-card"
+    href="/guides/esim/inventory"
+  >
+    Expand your business by reselling eSIMs and other financial products.
+  </Card>
+</Columns>
+
+## Core Concepts
+
+<Columns cols={2}>
+  <Card
+    title="Authentication"
+    icon="lock"
+    href="/authentication"
+  >
+    Securely connect to our APIs using private and public keys.
+  </Card>
+  <Card
+    title="Webhooks"
+    icon="bell"
+    href="/api-reference/webhooks/overview"
+  >
+    Stay updated on transaction statuses and event notifications in real-time.
+  </Card>
+</Columns>
+
+## Localized for Africa
+
+PaveWay is built with a focus on local currency support. We provide optimized FX rates and specialized payment flows for countries including Cameroon, Central African Republic, Chad, Equatorial Guinea, Gabon, Republic of the Congo, Côte d'Ivoire, Senegal, Ghana, and Kenya.
 
 <Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
+  title="Local Currency Guide"
+  icon="africa"
+  href="/guides/payments/local-currency"
   horizontal
 >
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
+  Understand how we handle XAF, XOF, NGN, GHS, and more with optimized conversions.
 </Card>

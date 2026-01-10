@@ -1,0 +1,65 @@
+---
+title: "Create a Subscription"
+api: "POST /subscriptions"
+description: "Start a recurring billing relationship with a customer."
+---
+
+### Request Body
+
+<ParamField body="customer_id" type="string" required>
+  The PaveWay ID of the customer (`cus_...`).
+</ParamField>
+
+<ParamField body="plan_id" type="string" required>
+  The ID of the plan to subscribe to.
+</ParamField>
+
+<ParamField body="payment_method" type="string" required>
+  `card` or `mobile_money`.
+</ParamField>
+
+#### Mobile Money Options
+
+<ParamField body="mobile_money.phone" type="string">
+  Phone number for USSD prompts.
+</ParamField>
+
+<ParamField body="mobile_money.network" type="string">
+  `MTN`, `ORANGE`, `AIRTEL`, etc.
+</ParamField>
+
+#### Card Options
+
+<ParamField body="card.token" type="string">
+  The card token (`tok_...`) obtained from a previous one-time payment.
+</ParamField>
+
+<ParamField body="fee_bearer" type="string" default="merchant">
+  Specifies who bears the transaction fees. 
+  - `merchant`: Fees are deducted from the payout.
+  - `customer`: Fees are added to the transaction amount.
+</ParamField>
+
+<ParamField body="is_internal" type="boolean" default="false">
+  Flag to indicate if the business is an internal PaveWay application. If true, the platform fee is reduced to 0.5%.
+</ParamField>
+
+### Response
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "data": {
+    "id": "sub_123...",
+    "status": "active",
+    "amount": 5000,
+    "current_period_end": "2024-02-01T12:00:00Z",
+    "current_invoice": {
+       "status": "paid",
+       "amount": 5000
+    }
+  }
+}
+```
+</ResponseExample>

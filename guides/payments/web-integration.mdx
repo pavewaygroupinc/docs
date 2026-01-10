@@ -1,0 +1,15 @@
+---
+title: "Web Integration"
+description: "Accept payments on your website using PaveWay Checkout."
+---
+
+The fastest way to accept payments on the web is using **PaveWay Checkout**, our pre-built, hosted payment page.
+
+## How it Works
+
+1.  **Create an Intent**: Generate a `client_secret` on your server.
+2.  **Redirect**: Send the customer to `[checkout_url] https://checkout.pavewaygroup.com/initpay/{id}?client_secret={pki...}`.
+3.  **Return**: The customer is redirected back to your `redirect_url` once the payment is complete.
+
+> [!NOTE]
+> We are currently developing a JavaScript SDK for embedded payment forms. Stay tuned for updates!

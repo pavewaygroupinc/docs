@@ -1,0 +1,33 @@
+---
+title: "Idempotency"
+description: "Safely retry requests without double-charging your customers."
+---
+
+Idempotency is a core feature of the PaveWay API that ensures you don't accidentally perform the same operation twice. This is especially critical for payment-related operations like creating a [PaymentIntent](/api-reference/payments/create-intent) or a [Refund](/api-reference/payments/refunds).
+
+## How it Works
+
+To make an idempotent request, include the `Idempotency-Key` header with a unique identifier for that specific operation.
+
+```bash
+curl https://api.pavewaygroup.com/v1/payment-intents \
+  -H "Idempotency-Key: CREATED_AT_ORD_12345" \
+  -H "Authorization: Bearer sk_test_..." \
+  ...
+```
+
+1. **First Request**: PaveWay processes the request and saves the response.
+2. **Subsequent Requests**: If you send another request with the same `Idempotency-Key`, PaveWay bypasses execution and returns the **exact same response** as the first request (including the status code).
+
+## Expiration
+
+Idempotency keys are automatically expired after **24 hours**. After this window, a request with a previously used key will be treated as a new, fresh request.
+
+## Best Practices
+
+- **Use Unique Identifiers**: A common pattern is to use a combination of the merchant order ID and the timestamp or attempt count.
+- **Failures & Retries**: If you receive a network error (e.g., Timeout), retry the request with the **same** key. If you receive a validation error (400), fix the payload and use a **new** key.
+- **Scope**: Idempotency keys are scoped to your Secret Key. Keys used in your **test** environment do not collide with **live** environment keys.
+
+> [!IMPORTANT]
+> Idempotency only applies to `POST` and `PATCH` requests. `GET` and `DELETE` requests are idempotent by nature (they don't change state or their repeated application has no extra effect).

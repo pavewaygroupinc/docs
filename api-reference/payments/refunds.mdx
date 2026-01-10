@@ -1,0 +1,69 @@
+---
+title: "Create Refund"
+api: "POST /refunds"
+description: "Issue a full or partial refund for a successful transaction."
+---
+
+### Authentication
+Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+### Request Body
+
+<ParamField body="transaction_id" type="string" required>
+  The ID of the original successful transaction.
+</ParamField>
+
+<ParamField body="amount" type="string">
+  Refund amount in smallest currency unit. If omitted, a full refund is issued.
+</ParamField>
+
+<ParamField body="reason" type="string">
+  Code for the refund reason: `requested_by_customer`, `duplicate`, `fraudulent`, `other`.
+</ParamField>
+
+<ParamField body="notes" type="string">
+  Additional context for the refund (up to 500 characters).
+</ParamField>
+
+### Response
+
+<ResponseField name="id" type="string">
+  Unique identifier for the transaction/refund wrapper.
+</ResponseField>
+
+<ResponseField name="refund_id" type="string">
+  The specific ID of the refund (e.g., `rf_...`).
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  The amount refunded.
+</ResponseField>
+
+<ResponseField name="currency" type="string">
+  The currency code.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Status of the refund (`succeeded`, `pending`, `failed`).
+</ResponseField>
+
+<ResponseField name="reason" type="string">
+  Reason for the refund.
+</ResponseField>
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "response_type": "success",
+  "data": {
+    "id": "658dc...",
+    "refund_id": "rf_abc123...",
+    "amount": "1000",
+    "currency": "XAF",
+    "status": "succeeded",
+    "reason": "requested_by_customer"
+  }
+}
+```
+</ResponseExample>

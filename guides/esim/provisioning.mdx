@@ -1,0 +1,46 @@
+---
+title: "Purchase & Provisioning"
+description: "How to resell and provision eSIMs to your customers."
+---
+
+Reselling an eSIM through PaveWay is a 3-step process involving an order creation, a payment, and a final provisioning step.
+
+## Step 1: Create an Order
+When a customer chooses a plan, create an order in PaveWay. This reserves the inventory and gives you an `order_id`.
+
+```bash
+curl -X POST https://api.pavewaygroup.com/v1/esim/orders \
+  -H "Authorization: Bearer sk_test_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "package_id": "pkg_world_5gb_30d",
+    "quantity": 1
+  }'
+```
+
+The response will include the `order_id` and the `total_amount` required to complete the purchase.
+
+## Step 2: Collect Payment
+Use the [Payment Collection API](/guides/payments/overview) to charge the customer. Ensure you store the `payment_ref` returned by PaveWay after a successful transaction.
+
+> [!TIP]
+> You can use the `order_id` as the `merchant_reference` in the PaymentIntent to keep your records linked.
+
+## Step 3: Confirm & Provision
+Once the payment is successful, call the confirmation endpoint to provision the eSIM. PaveWay will immediately generate the eSIM QR code.
+
+```bash
+curl -X POST https://api.pavewaygroup.com/v1/esim/orders/confirm-payment \
+  -H "Authorization: Bearer sk_test_..." \
+  -d '{
+    "order_id": "ord_123...",
+    "payment_ref": "pay_xyz..."
+  }'
+```
+
+## Delivering the eSIM
+
+The response from Step 3 contains the `activation_code` and a `qr_code_url`. You should display the QR code to your user or send it to them via email.
+
+- **QR Code**: The user can scan this in their phone's settings to install the eSIM.
+- **Manual Discovery**: Some phones also support automatic discovery if you provide the SM-DP+ address and matching ID found in the response.

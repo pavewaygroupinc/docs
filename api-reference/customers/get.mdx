@@ -1,0 +1,51 @@
+---
+title: "Retrieve a Customer"
+api: "GET /customers/{id}"
+description: "Retrieve detailed information about a specific customer."
+---
+
+Retrieves the details of an existing customer. You only need to supply the unique customer identifier that was returned upon customer creation.
+
+### Authentication
+Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the customer to retrieve.
+</ParamField>
+
+### Response
+
+Returns a customer object if a valid identifier was provided.
+
+<ResponseExample>
+```json
+{
+  "status_code": 200,
+  "response_type": "success",
+  "data": {
+    "id": "658dc...",
+    "firstname": "John",
+    "lastname": "Doe",
+    "email": "john.doe@example.com",
+    "phone": "237612345678",
+    "balance": 0,
+    "active": true,
+    "created_at": 1704873600,
+    "billing": [
+      {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "237612345678",
+        "address": {
+          "line1": "123 Main St",
+          "city": "Douala",
+          "country": "CM"
+        }
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

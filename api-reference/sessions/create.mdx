@@ -1,0 +1,54 @@
+---
+title: "Customer Sessions"
+api: "POST /sessions/create"
+description: "Create secure, short-lived sessions for your customers."
+---
+
+Customer sessions allow you to create a temporary, authenticated context for a customer. This is commonly used to let customers manage their own payment methods or view their billing history in your application without exposing your Secret Keys.
+
+### Authentication
+Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+```http
+Authorization: Bearer sk_test_...
+```
+
+### Request Body
+
+<ParamField body="customer_email" type="string" required>
+  The email address of the customer to create a session for.
+</ParamField>
+
+### Response
+
+Returns a `session_token` which can be used in client-side requests for a limited time (default 30 minutes).
+
+```json
+{
+  "success": true,
+  "message": "Session created successfully",
+  "data": {
+    "session_token": "cs_AbCdEf...",
+    "customer_email": "customer@example.com",
+    "expires_at": "2024-01-01T12:30:00Z"
+  }
+}
+```
+
+## Validate a Session
+
+Check if a session token is still valid.
+
+```bash
+POST /v1/sessions/validate
+-H "Authorization: Bearer cs_AbCdEf..."
+```
+
+## Revoke a Session
+
+Explicitly terminate a session (Logout).
+
+```bash
+POST /v1/sessions/revoke
+-H "Authorization: Bearer cs_AbCdEf..."
+```

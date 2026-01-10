@@ -1,0 +1,17 @@
+---
+title: "List eSIM Plans"
+api: "GET https://api.pavewaygroup.com/v1/esim/packages"
+description: "Browse available eSIM data plans."
+---
+
+### Query Parameters
+<ParamField query="region" type="string">
+  Filter by region (e.g., `africa`, `europe`).
+</ParamField>
+
+<ParamField query="country" type="string">
+  Filter by ISO country code (e.g., `CM`, `NG`).
+</ParamField>
+
+### Response
+Returns an array of package objects containing `data_limit`, `validity`, and `price`.

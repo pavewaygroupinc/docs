@@ -1,0 +1,50 @@
+---
+title: "Purchase eSIM"
+api: "POST https://api.pavewaygroup.com/v1/esim/orders"
+description: "Creates an order to purchase an eSIM package."
+---
+
+### Authentication
+Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+```http
+Authorization: Bearer sk_test_...
+```
+
+### Request Body
+
+<ParamField body="package_id" type="string" required>
+  The unique identifier of the eSIM package (from the inventory endpoint).
+</ParamField>
+
+<ParamField body="quantity" type="integer" default="1">
+  Number of eSIMs to purchase (Max: 5).
+</ParamField>
+
+### Response
+
+Returns the created order details.
+
+<ResponseField name="order_id" type="string">
+  Unique identifier for the eSIM order.
+</ResponseField>
+
+<ResponseField name="amount" type="number">
+  The total amount to be paid for this order.
+</ResponseField>
+
+<ResponseField name="currency" type="string">
+  The currency code for the payment.
+</ResponseField>
+
+<RequestExample>
+```bash
+curl -X POST https://api.pavewaygroup.com/v1/esim/orders \
+  -H "Authorization: Bearer sk_test_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "package_id": "pkg_world_5gb",
+    "quantity": 1
+  }'
+```
+</RequestExample>

@@ -1,0 +1,36 @@
+---
+title: "Local Currency Handling"
+description: "Optimized payments for local African markets."
+---
+
+PaveWay is designed to handle the complexity of local currencies and cross-border FX automatically. When you want to charge a customer, don't worry about their local currency, charge them is whatever currency you love, they will pay in their local currency while settling in your base business currency, PaveWay takes care of the math.
+
+## Supported African Currencies
+
+We offer deep integration for the following local currencies:
+
+| Currency Code | Region | Primary Methods |
+| :--- | :--- | :--- |
+| **XAF** | CEMAC Zone (Cameroon, Chad, Central African Republic, Gabon, Republic of the Congo, Equatorial Guinea) | Mobile Money (MTN, Orange) |
+| **XOF** | UEMOA Zone (Senegal, Ivory Coast, Burkina Faso, Mali, Niger, Guinea, Guinea-Bissau) | Mobile Money (Moov, Orange) |
+| **NGN** | Nigeria | Bank Transfer, Card |
+| **GHS** | Ghana | Mobile Money |
+| **KES** | Kenya | M-Pesa |
+
+## Automatic FX Conversion
+
+If your business is settled in XAF, but you want to display an amount in USD, you can use our exchange rate engine.
+
+### How it Works
+
+1. **Request with Local Intent**: When calling `POST /v1/payment-intents`, you can provide a `currency` for the customer.
+2. **Rate Fetching**: PaveWay fetches the mid-market rate and applies.
+3. **Optimized Display**: The API returns the exact amount to be charged to the customer in their local currency.
+
+## Merchant Settlement
+
+Regardless of the currency the customer pays in, your funds are either automatically converted and settled into your business wallet in your preferred currency (e.g., XAF or NGN or GHS or KES or USD or EUR) or left in the local currency for the merchant to withdraw later.
+
+### Example: Charging in XAF for a $10 product
+
+When you specify the merchant amount as 10 USD, PaveWay will calculate the equivalent XAF amount based on the daily best rate and ensure the customer sees exactly that amount on their checkout screen.

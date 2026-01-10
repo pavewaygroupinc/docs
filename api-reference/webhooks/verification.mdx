@@ -1,0 +1,65 @@
+---
+title: "Signature Verification"
+description: "Ensure that webhook requests are authentic and sent by PaveWay."
+---
+
+PaveWay signs every webhook request with a unique signature in the `X-PaveWay-Signature` header. You should verify this signature to prevent unauthorized requests from reaching your server.
+
+## The Verification Method
+
+The signature is generated using an **HMAC with SHA256** hash, using your **Webhook Signing Secret** as the key.
+
+- **Header**: `X-PaveWay-Signature`
+- **Format**: `sha256=<signature_hex>`
+- **Payload**: The raw HTTP request body (JSON).
+
+## Verification Example (Node.js)
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhook(payload, signatureHeader, secret) {
+  const [prefix, signature] = signatureHeader.split('=');
+  
+  if (prefix !== 'sha256') {
+    throw new Error('Invalid signature format');
+  }
+
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+}
+```
+
+## Verification Example (Python)
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(payload, signature_header, secret):
+    prefix, signature = signature_header.split('=')
+    
+    if prefix != 'sha256':
+        return False
+        
+    expected_sig = hmac.new(
+        secret.encode(),
+        payload, # Raw bytes from request
+        hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(signature, expected_sig)
+```
+
+## Security Best Practices
+
+1.  **Raw Body**: Always use the raw binary request body for verification. Do not use a parsed JSON object, as re-stringifying it can change the character order or whitespace, causing signature mismatch.
+2.  **Timing Attacks**: Use a constant-comparison function (like `timingSafeEqual` in Node or `compare_digest` in Python) to prevent timing-based side-channel attacks.
+3.  **Secret Rotation**: If your signing secret is compromised, rotate it immediately in the Merchant Dashboard.

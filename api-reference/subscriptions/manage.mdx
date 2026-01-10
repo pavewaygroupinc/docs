@@ -1,0 +1,48 @@
+---
+title: "Manage Subscriptions"
+description: "Lifecycle management for active subscriptions."
+api: "POST /subscriptions/{id}/pause"
+---
+
+PaveWay provides endpoints to modify, pause, or cancel active subscriptions.
+
+## Pause & Resume
+
+Pause billing for a customer without canceling their plan.
+
+```bash
+POST /subscriptions/{id}/pause 
+POST /subscriptions/{id}/resume
+```
+
+## Update Payment Method
+
+Switch a customer from Mobile Money to Card, or update their billing phone number.
+
+```bash
+PUT /subscriptions/{id}/payment-method
+```
+
+## Cancel Subscription
+
+```bash
+POST /subscriptions/{id}/cancel
+```
+
+### Cancellation Parameters
+
+<ParamField body="immediately" type="boolean" default="false">
+  If `true`, billing stops now. If `false`, the subscription remains active until the end of the current period.
+</ParamField>
+
+## Fallback Configuration
+
+Configure a secondary payment method (e.g., a credit card) to be tried automatically if the primary mobile money payment fails after $X$ attempts.
+
+```bash
+PUT /subscriptions/{id}/fallback
+```
+
+<ParamField body="trigger_after_failures" type="integer" default="3">
+  Number of consecutive failures before falling back to the secondary method.
+</ParamField>

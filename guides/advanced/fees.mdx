@@ -1,0 +1,46 @@
+---
+title: "Fees & Quotes"
+description: "Understand PaveWay's transparent fee structure and tax handling."
+---
+
+PaveWay provides a transparent fee engine that calculates costs in real-time based on the payment method, customer location, and merchant configuration.
+
+## Fee Types
+
+| Fee Type | Description | Standard Rate |
+| :--- | :--- | :--- |
+| **Platform Fee** | PaveWay's processing fee. | 1.0% |
+| **Provider Fee** | Passthrough cost from the gateway (Stripe, Flutterwave, etc.). | Varies by country (1.4% - 4.8%) |
+| **Fixed Fee** | A flat cost per transaction. | 50 XAF (Local MM) / $0.30 (Intl Cards) |
+
+## Fee Bearer Configuration
+
+You can control who pays the transaction fees using the `fee_bearer` parameter at [PaymentIntent creation](/api-reference/payments/create-intent).
+
+- **`merchant`**: Fees are deducted from your final payout. The customer pays exactly the amount you specify.
+- **`customer`** (Default): Fees are added to the transaction amount. The customer sees a slightly higher total at checkout, but you receive the full requested amount.
+
+## Fetching a Quote
+
+You can retrieve a real-time fee breakdown before charging the customer.
+
+```bash
+GET /v1/payment-methods/fee/{payment_method}/{currency}/{amount}
+```
+
+### Response Example
+
+```json
+{
+  "status": "success",
+  "data": {
+    "amount": 10000,
+    "currency": "XAF",
+    "fee": 350,
+    "total_payable": 10350
+  }
+}
+```
+
+> [!NOTE]
+> For high-volume merchants, the **Platform Fee** is reduced to **0.5%**. Contact your account manager for tiered pricing.

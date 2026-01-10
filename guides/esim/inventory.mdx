@@ -1,0 +1,52 @@
+---
+title: "eSIM Inventory"
+description: "Browsing available eSIM packages for reselling."
+---
+
+The PaveWay eSIM API allows you to browse hundreds of data plans across the globe. You can filter by country, continent, or search for global plans that work everywhere.
+
+## Browsing Packages
+
+### 1. By Country
+To see eSIMs available in a specific country, first fetch the list of supported countries.
+
+```bash
+# Get all supported countries
+curl https://api.pavewaygroup.com/v1/esim/countries \
+  -H "Authorization: Bearer sk_test_..."
+```
+
+Then, query the packages for a given country code:
+
+```bash
+# Get packages for Cameroon (CM)
+curl https://api.pavewaygroup.com/v1/esim/countries/CM/packages \
+  -H "Authorization: Bearer sk_test_..."
+```
+
+### 2. By Continent
+If you want to offer regional plans (e.g., "All Africa" or "Europe"), you can browse by continent.
+
+```bash
+# Get packages for Africa
+curl https://api.pavewaygroup.com/v1/esim/continents/africa/packages \
+  -H "Authorization: Bearer sk_test_..."
+```
+
+### 3. Global Plans
+PaveWay also offers global eSIMs that work in 100+ countries.
+
+```bash
+# List all global packages
+curl https://api.pavewaygroup.com/v1/esim/global \
+  -H "Authorization: Bearer sk_test_..."
+```
+
+## Package Details
+
+Each package object contains:
+- `id`: Unique identifier for the plan.
+- `data_limit`: Amount of data (e.g., 1GB, 5GB).
+- `validity`: Duration (e.g., 7 days, 30 days).
+- `price`: Cost in your base currency.
+- `coverage`: List of countries where it works.

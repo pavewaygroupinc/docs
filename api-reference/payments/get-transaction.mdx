@@ -1,0 +1,98 @@
+---
+title: "Retrieve a Transaction"
+api: "GET /transactions/{id}"
+description: "Retrieve full details for a specific transaction."
+---
+
+### Authentication
+Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+```http
+Authorization: Bearer sk_test_...
+```
+
+### Path Parameters
+
+<ParamField path="id" type="string" required>
+  The unique ID of the transaction.
+</ParamField>
+
+
+### Response Schema
+
+Returns a full `Transaction` object.
+
+<ResponseField name="id" type="string">
+  Unique identifier for the transaction.
+</ResponseField>
+
+<ResponseField name="object" type="string">
+  Value is `payment_intent`.
+</ResponseField>
+
+<ResponseField name="amount" type="string">
+  Total amount charged.
+</ResponseField>
+
+<ResponseField name="currency" type="string">
+  Three-letter ISO currency code.
+</ResponseField>
+
+<ResponseField name="status" type="string">
+  Current status (`succeeded`, `failed`, `requires_action`, etc.).
+</ResponseField>
+
+<ResponseField name="payment_ref" type="string">
+  PaveWay's unique public reference.
+</ResponseField>
+
+<ResponseField name="merchant_reference" type="string">
+  Your provided order reference.
+</ResponseField>
+
+<ResponseField name="description" type="string">
+  Transaction description.
+</ResponseField>
+
+<ResponseField name="created_at" type="integer">
+  Timestamp of creation (Unix epoch).
+</ResponseField>
+
+<ResponseField name="customer" type="object">
+  <Expandable title="properties">
+    <ResponseField name="firstname" type="string">Customer's first name.</ResponseField>
+    <ResponseField name="lastname" type="string">Customer's last name.</ResponseField>
+    <ResponseField name="email" type="string">Customer's email.</ResponseField>
+    <ResponseField name="phone" type="string">Customer's phone.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="metadata" type="object">
+  Custom metadata provided during creation.
+</ResponseField>
+
+<ResponseExample>
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "658dc...",
+    "object": "payment_intent",
+    "amount": "10000",
+    "currency": "XAF",
+    "status": "succeeded",
+    "merchant_reference": "ORD-12345",
+    "payment_ref": "PWG_abc123",
+    "description": "Order #12345",
+    "created_at": 1735689600,
+    "customer": {
+      "firstname": "John",
+      "lastname": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "237612345678"
+    }
+  }
+}
+```
+</ResponseExample>
