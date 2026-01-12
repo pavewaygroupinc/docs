@@ -10,7 +10,7 @@
   "favicon": "/favicon.svg",
   "api": {
     "mdx": {
-      "server": "https://api-sandbox.pavewaygroup.com/v1",
+      "server": "https://paveway-gateway-adwfci84.uc.gateway.dev	/v1",
       "auth": {
         "method": "bearer"
       }
@@ -22,7 +22,7 @@
   "anchors": [
     {
       "anchor": "Sandbox (Test)",
-      "url": "https://api-sandbox.pavewaygroup.com/v1",
+      "url": "https://paveway-gateway-adwfci84.uc.gateway.dev	/v1",
       "icon": "vial"
     },
     {
