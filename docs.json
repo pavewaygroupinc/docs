@@ -10,7 +10,7 @@
   "favicon": "/favicon.svg",
   "api": {
     "mdx": {
-      "server": "https://paveway-gateway-adwfci84.uc.gateway.dev	/v1",
+      "server": "https://paveway-gateway-adwfci84.uc.gateway.dev/v1",
       "auth": {
         "method": "bearer"
       }
@@ -22,7 +22,7 @@
   "anchors": [
     {
       "anchor": "Sandbox (Test)",
-      "url": "https://paveway-gateway-adwfci84.uc.gateway.dev	/v1",
+      "url": "https://paveway-gateway-adwfci84.uc.gateway.dev/v1",
       "icon": "vial"
     },
     {
@@ -125,8 +125,8 @@
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/dark.png",
+    "dark": "/logo/light.png"
   },
   "footer": {
     "socials": {
