@@ -7,11 +7,13 @@ description: "Creates a new PaymentIntent object to begin the payment process."
 Creates a PaymentIntent object. After the PaymentIntent is created, attach a payment method and confirm to continue the payment.
 
 ### Authentication
+
 Include your **Secret Key** in the `Authorization` header as a Bearer token.
 
 ### Request Body
 
 #### Customer Information
+
 <ParamField body="firstname" type="string" required>
   Customer's first name.
 </ParamField>
@@ -29,11 +31,12 @@ Include your **Secret Key** in the `Authorization` header as a Bearer token.
 </ParamField>
 
 #### Payment Details
+
 <ParamField body="amount" type="string" required>
   Amount in the smallest currency unit. e.g., "1000" for 1000 XAF. This should be a string to maintain precision.
 </ParamField>
 
-<ParamField body="currency" type="string" default="XAF">
+<ParamField body="currency" default="XAF" type="string">
   Three-letter ISO currency code. e.g., `XAF`, `NGN`, `USD`.
 </ParamField>
 
@@ -46,35 +49,38 @@ Include your **Secret Key** in the `Authorization` header as a Bearer token.
 </ParamField>
 
 #### Configuration
-<ParamField body="fee_bearer" type="string" default="merchant">
-  Specifies who bears the transaction fees. 
-  - `merchant`: (Default) Fees are deducted from the payout amount you receive. The customer pays exactly the `amount`.
+
+<ParamField body="fee_bearer" default="merchant" type="string">
+  Specifies who bears the transaction fees.
+
+  - `merchant:`(Default) Fees are deducted from the payout amount you receive. The customer pays exactly the `amount`.
   - `customer`: Fees are added on top of the `amount`. The customer pays `amount + fees`, and you receive the full `amount`.
 </ParamField>
 
-<ParamField body="confirmation_method" type="string" default="automatic">
+<ParamField body="confirmation_method" default="automatic" type="string">
   How the payment should be confirmed.
+
   - `automatic`: (Default) Suitable for hosted checkout pages.
   - `manual`: Requires a separate server-side confirmation call.
 </ParamField>
 
-<ParamField body="confirm" type="boolean" default="false">
+<ParamField body="confirm" default="false" type="boolean">
   Set to `true` to immediately attempt to confirm the PaymentIntent if a payment method is already attached or provided.
 </ParamField>
 
 <ParamField body="items" type="array">
-  An array of objects representing line items in the order. Each item should have `name`, `price`, `currency`, and `quantity`.
+  An array of objects representing line items in order. Each item should have `name`, `price`, `currency`, and `quantity`.
 </ParamField>
 
 <ParamField body="redirect_url" type="string">
-  The URL to redirect the customer to after they complete the payment on a external gateway or hosted page.
+  The URL to redirect the customer to after they complete the payment on an external gateway or hosted page.
 </ParamField>
 
 <ParamField body="metadata" type="object">
-  Set of key-value pairs that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
+  A set of key-value pairs that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
 </ParamField>
 
-<ParamField body="collect_shipping_address" type="boolean" default="false">
+<ParamField body="collect_shipping_address" default="false" type="boolean">
   Whether to prompt the customer for a shipping address during the checkout process.
 </ParamField>
 
@@ -122,13 +128,20 @@ Include your **Secret Key** in the `Authorization` header as a Bearer token.
 
 <ResponseField name="customer" type="object">
   <Expandable title="properties">
-    <ResponseField name="firstname" type="string">Customer's first name.</ResponseField>
-    <ResponseField name="lastname" type="string">Customer's last name.</ResponseField>
-    <ResponseField name="email" type="string">Customer's email.</ResponseField>
+    <ResponseField name="firstname" type="string">
+      Customer's first name.
+    </ResponseField>
+     <ResponseField name="lastname" type="string">
+      Customer's last name.
+    </ResponseField>
+     <ResponseField name="email" type="string">
+      Customer's email.
+    </ResponseField>
   </Expandable>
 </ResponseField>
 
 <ResponseExample>
+
 ```json
 {
   "status_code": 200,
@@ -151,4 +164,5 @@ Include your **Secret Key** in the `Authorization` header as a Bearer token.
   }
 }
 ```
+
 </ResponseExample>

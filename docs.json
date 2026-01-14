@@ -32,6 +32,20 @@
     }
   ],
   "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Documentation",
+          "icon": "book-open-cover",
+          "href": "https://developer.pavewaygroup.com/docs"
+        },
+        {
+          "anchor": "Insights",
+          "icon": "newspaper",
+          "href": "https://pavewaygroup.com/en/insights"
+        }
+      ]
+    },
     "tabs": [
       {
         "tab": "Guides",
@@ -134,5 +148,9 @@
       "linkedin": "https://linkedin.com/company/pavewaygroup",
       "github": "https://github.com/pavewaygroup"
     }
-  }
+  },
+  "fonts": {
+    "family": "Montserrat"
+  },
+  "description": "The easiest way to collect payments and resell financial services in CEMAC"
 }
