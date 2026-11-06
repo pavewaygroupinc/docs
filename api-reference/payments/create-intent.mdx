@@ -78,6 +78,7 @@ curl -X POST https://api.viarosandbox.com/v1/payment_intents \
 ```python Python
 import requests
 
+<<<<<<< HEAD
 api_key = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG"
 base_url = "https://api.viarosandbox.com/v1"
 
@@ -127,8 +128,24 @@ console.log(result.data);
 ---
 
 ### Response Example
+=======
+<ResponseField name="customer" type="object">
+  <Expandable title="properties">
+    <ResponseField name="firstname" type="string">
+      Customer's first name.
+    </ResponseField>
+     <ResponseField name="lastname" type="string">
+      Customer's last name.
+    </ResponseField>
+     <ResponseField name="email" type="string">
+      Customer's email.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+>>>>>>> 23db9faad88a5949d4ab95252e7e6ec61df0796f
 
 <ResponseExample>
+
 ```json
 {
   "status_code": 200,
@@ -145,4 +162,5 @@ console.log(result.data);
   }
 }
 ```
+
 </ResponseExample>
