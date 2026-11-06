@@ -1,0 +1,83 @@
+---
+title: "List Products"
+api: "GET /products"
+description: "Returns a list of products in your catalog."
+---
+
+Products describe the specific goods or digital services you offer to your customers. You can use products in conjunction with Checkout, Payment Links, Invoicing, and Subscriptions.
+
+---
+
+### Query Parameters
+
+<ParamField query="limit" type="integer" default="10">
+  A limit on the number of objects to be returned, between `1` and `100`.
+</ParamField>
+
+<ParamField query="active" type="boolean">
+  Only return products that are active or inactive.
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/products \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/products"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function listProducts() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/products', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    }
+  });
+
+  console.log(response.data);
+}
+
+listProducts();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "prod_3a4b5c6d7e",
+      "object": "product",
+      "name": "Standard Developer Plan",
+      "description": "Monthly recurring developer license",
+      "active": true,
+      "default_price": {
+        "amount": 20000,
+        "currency": "XAF",
+        "recurring": { "interval": "month" }
+      },
+      "created_at": "2026-11-06T12:00:00Z"
+    }
+  ],
+  "has_more": false
+}
+```

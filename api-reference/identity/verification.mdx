@@ -1,0 +1,113 @@
+---
+title: "Identity Verification"
+api: "POST /identity/verification_sessions"
+description: "Verify government-issued IDs, business registration documents, and biometric selfies using automated OCR and facial matching."
+---
+
+Pursar Identity allows you to securely verify the identities of business owners, beneficial representatives, or platform users using government-issued photo IDs (National ID, Passport, Driver's License) and biometric liveness checks.
+
+---
+
+### Create a Verification Session
+
+<ParamField body="type" type="string" required>
+  The type of verification to perform: `document` (National ID / Passport) or `id_number` (Tax ID / Business Registration).
+</ParamField>
+
+<ParamField body="return_url" type="string" required>
+  The URL to redirect the user to once they finish the hosted verification flow.
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Key-value pairs for internal customer or application correlation.
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/identity/verification_sessions \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "document",
+    "return_url": "https://example.com/identity/callback",
+    "metadata": {
+      "user_id": "usr_90210"
+    }
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/identity/verification_sessions"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+payload = {
+    "type": "document",
+    "return_url": "https://example.com/identity/callback",
+    "metadata": {"user_id": "usr_90210"}
+}
+
+response = requests.post(url, auth=auth, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function createVerificationSession() {
+  const response = await axios.post(
+    'https://api.viarosandbox.com/v1/identity/verification_sessions',
+    {
+      type: 'document',
+      return_url: 'https://example.com/identity/callback',
+      metadata: { user_id: 'usr_90210' }
+    },
+    {
+      auth: {
+        username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+        password: ''
+      }
+    }
+  );
+
+  console.log(response.data);
+}
+
+createVerificationSession();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "id": "vs_1a2b3c4d5e6f",
+  "object": "identity.verification_session",
+  "status": "requires_input",
+  "type": "document",
+  "url": "https://verify.viarosandbox.com/vs_1a2b3c4d5e6f",
+  "client_secret": "vs_1a2b3c4d5e6f_secret_7f8a9b",
+  "return_url": "https://example.com/identity/callback",
+  "created_at": "2026-11-06T12:00:00Z"
+}
+```
+
+---
+
+### List Verification Sessions
+
+`GET /identity/verification_sessions`
+
+Returns a list of verification sessions initiated by your business.
+
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/identity/verification_sessions \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```

@@ -1,16 +1,33 @@
 ---
 title: "Check Payment Status"
-api: "PATCH /payment-verification/{reference}/verify"
-description: "Lightweight endpoint for polling payment status."
+api: "GET /public/payment-intents/{id}/status"
+description: "Lightweight endpoint for frontend polling of payment status."
 ---
 
-Use this endpoint to poll the current status of a PaymentIntent. It is optimized for high-frequency polling from frontends or mobile apps while a customer is completing a payment.
+Use this endpoint to poll the current status of a PaymentIntent directly from your frontend, checkout page, or mobile app while a customer is completing payment.
+
+### Query Parameters
+
+<ParamField query="client_secret" type="string" required>
+  The `client_secret` returned when the PaymentIntent was created. Required for public access.
+</ParamField>
 
 ### Path Parameters
 
-<ParamField path="reference" type="string" required>
-  The payment_ref or the merchant_reference of the PaymentIntent to check.
+<ParamField path="id" type="string" required>
+  The unique ID of the PaymentIntent.
 </ParamField>
+
+---
+
+### Gateway Active Verification (Server-to-Server)
+
+If you need your backend to actively verify the status directly against upstream gateways (Flutterwave, Stripe, PayPal) and update local records, use:
+
+```http
+PATCH /v1/payment-verification/{reference}/verify
+Authorization: Bearer sk_live_...
+```
 
 ### Response
 

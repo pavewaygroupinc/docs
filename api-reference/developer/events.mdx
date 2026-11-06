@@ -1,0 +1,89 @@
+---
+title: "Events"
+api: "GET /events"
+description: "Inspect the append-only audit trail of events emitted across your Pursar ecosystem."
+---
+
+Events are our way of letting you know when something interesting happens in your account. When an event occurs, Pursar creates an `Event` object and sends it to all configured webhook endpoints.
+
+You can also poll or query the `/events` endpoint to audit past activities, inspect delivery status, or recover missed events.
+
+---
+
+### Query Parameters
+
+<ParamField query="limit" type="integer" default="10">
+  A limit on the number of objects to be returned, between `1` and `100`.
+</ParamField>
+
+<ParamField query="type" type="string">
+  Filter events by specific event type (e.g. `payment_intent.succeeded`, `charge.successful`).
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/events \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -d limit=10
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/events"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth, params={"limit": 10})
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function listEvents() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/events', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    },
+    params: { limit: 10 }
+  });
+
+  console.log(response.data);
+}
+
+listEvents();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "evt_1a2b3c4d5e6f",
+      "object": "event",
+      "type": "payment_intent.succeeded",
+      "data": {
+        "object": {
+          "id": "pi_550e8400e29b41d4a716446655440000",
+          "amount": 25000,
+          "currency": "XAF",
+          "status": "succeeded",
+          "customer_email": "amara@example.com"
+        }
+      },
+      "created_at": "2026-11-06T11:35:00Z"
+    }
+  ],
+  "has_more": false
+}
+```

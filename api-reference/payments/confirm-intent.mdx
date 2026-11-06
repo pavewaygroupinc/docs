@@ -1,0 +1,140 @@
+---
+title: "Confirm a PaymentIntent"
+api: "POST /public/payment_intents/{id}/confirm"
+description: "Confirm that your customer intends to pay with a specified payment method (Mobile Money, Card, etc.)."
+---
+
+Confirming a PaymentIntent fulfills the payment by attaching payment method details (e.g. Mobile Money phone number and operator, Card token, or Bank Account). 
+
+If the payment method requires authorization from the customer (such as entering a PIN on their mobile phone for MTN/Orange or performing 3D Secure for cards), the response status transitions to `requires_action` and contains instructions to complete the payment.
+
+---
+
+### Request Path & Parameters
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the PaymentIntent to confirm (e.g., `pi_550e8400e29b41d4a716446655440000`).
+</ParamField>
+
+<ParamField body="client_secret" type="string" required>
+  The client secret of the PaymentIntent, provided when creating the intent.
+</ParamField>
+
+<ParamField body="payment_method_data" type="object" required>
+  Details for the payment method being used.
+
+  <Expandable title="payment_method_data fields">
+    <ParamField body="type" type="string" required>
+      Payment method type: `mobile_money`, `card`, `paypal`, `bank_transfer`, or `manual_ussd`.
+    </ParamField>
+    
+    <ParamField body="phone" type="string">
+      Customer phone number in international E.164 format (for `mobile_money`).
+    </ParamField>
+
+    <ParamField body="network" type="string">
+      Mobile money operator: `MTN`, `ORANGE`, `MOOV`, `WAVE`, `MPESA`, `EXPRESS_UNION`.
+    </ParamField>
+
+    <ParamField body="token" type="string">
+      Payment token for card or third-party method.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/public/payment_intents/pi_550e8400e29b41d4a716446655440000/confirm \
+  -H "Content-Type: application/json" \
+  -d '{
+    "client_secret": "pi_550e8400e29b41d4a716446655440000_secret_a1b2c3d4e5f6",
+    "payment_method_data": {
+      "type": "mobile_money",
+      "phone": "+237671234567",
+      "network": "MTN"
+    }
+  }'
+```
+
+```python Python
+import requests
+
+intent_id = "pi_550e8400e29b41d4a716446655440000"
+client_secret = f"{intent_id}_secret_a1b2c3d4e5f6"
+
+url = f"https://api.viarosandbox.com/v1/public/payment_intents/{intent_id}/confirm"
+
+payload = {
+    "client_secret": client_secret,
+    "payment_method_data": {
+        "type": "mobile_money",
+        "phone": "+237671234567",
+        "network": "MTN"
+    }
+}
+
+response = requests.post(url, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function confirmIntent() {
+  const intentId = 'pi_550e8400e29b41d4a716446655440000';
+  const clientSecret = `${intentId}_secret_a1b2c3d4e5f6`;
+
+  const response = await axios.post(
+    `https://api.viarosandbox.com/v1/public/payment_intents/${intentId}/confirm`,
+    {
+      client_secret: clientSecret,
+      payment_method_data: {
+        type: 'mobile_money',
+        phone: '+237671234567',
+        network: 'MTN'
+      }
+    }
+  );
+
+  console.log(response.data);
+}
+
+confirmIntent();
+```
+</CodeGroup>
+
+---
+
+### Response (Requires Action - Mobile Money USSD Prompt)
+
+```json
+{
+  "id": "pi_550e8400e29b41d4a716446655440000",
+  "status": "requires_action",
+  "amount": 25000,
+  "currency": "XAF",
+  "next_action": {
+    "type": "verify_with_phone",
+    "instructions": "A push notification has been sent to +237671234567. Please confirm the prompt on your phone by entering your Mobile Money PIN."
+  }
+}
+```
+
+---
+
+### Response (Succeeded)
+
+```json
+{
+  "id": "pi_550e8400e29b41d4a716446655440000",
+  "status": "succeeded",
+  "amount": 25000,
+  "currency": "XAF",
+  "transaction_id": "tx_90123abcde",
+  "customer_email": "customer@example.com"
+}
+```

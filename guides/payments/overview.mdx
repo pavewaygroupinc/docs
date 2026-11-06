@@ -48,11 +48,17 @@ curl -X POST https://api.pavewaygroup.com/v1/payment-intents \
 Redirect the customer to the `checkout_url` provided in the response. PaveWay handles the payment method selection and security.
 
 ### 3. Verify the Status (Server-side)
-After the customer is redirected back to your site, **always** perform a server-side verification using your Secret Key to confirm the final status.
+After the customer is redirected back to your site, **always** perform a server-side verification using your Secret Key to confirm the final status:
 
 ```bash
-GET /v1/payment-verification/{merchant_reference or payment_ref}/verify
--H "Authorization: Bearer sk_test_..."
+curl -X PATCH https://api.pavewaygroup.com/v1/payment-verification/{reference}/verify \
+  -H "Authorization: Bearer sk_test_..."
+```
+
+For lightweight frontend polling during payment processing, use the public status endpoint:
+
+```bash
+curl https://api.pavewaygroup.com/v1/public/payment-intents/{payment_id}/status?client_secret={client_secret}
 ```
 
 ---

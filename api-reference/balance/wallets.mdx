@@ -1,0 +1,90 @@
+---
+title: "Multi-Currency Wallets"
+api: "GET /wallets"
+description: "List and inspect individual multi-currency merchant wallets held across CEMAC, UEMOA, and East Africa."
+---
+
+Pursar provides dedicated multi-currency wallets for businesses operating across borders. Each wallet isolates funds in its native currency (e.g. `XAF`, `XOF`, `GHS`, `KES`, `USD`, `EUR`), preventing forced currency conversions and foreign exchange slippage.
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/wallets \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/wallets"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function getWallets() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/wallets', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    }
+  });
+
+  console.log(response.data);
+}
+
+getWallets();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "wal_xaf_cm01",
+      "object": "wallet",
+      "currency": "XAF",
+      "region": "CEMAC",
+      "balance": 1450000,
+      "available_balance": 1450000,
+      "pending_balance": 75000,
+      "status": "active",
+      "payout_schedule": "daily"
+    },
+    {
+      "id": "wal_xof_ci01",
+      "object": "wallet",
+      "currency": "XOF",
+      "region": "UEMOA",
+      "balance": 820000,
+      "available_balance": 820000,
+      "pending_balance": 0,
+      "status": "active",
+      "payout_schedule": "daily"
+    },
+    {
+      "id": "wal_ghs_gh01",
+      "object": "wallet",
+      "currency": "GHS",
+      "region": "Ghana",
+      "balance": 3500,
+      "available_balance": 3500,
+      "pending_balance": 0,
+      "status": "active",
+      "payout_schedule": "daily"
+    }
+  ]
+}
+```

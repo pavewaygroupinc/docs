@@ -1,132 +1,132 @@
 ---
 title: "Create a PaymentIntent"
-api: "POST /payment-intents"
-description: "Creates a new PaymentIntent object to begin the payment process."
+api: "POST /payment_intents"
+description: "Creates a new PaymentIntent object representing a customer payment journey."
 ---
 
-Creates a PaymentIntent object. After the PaymentIntent is created, attach a payment method and confirm to continue the payment.
+A **PaymentIntent** guides you through the process of collecting a payment from your customer. We recommend using PaymentIntents rather than direct charges for scenarios requiring complex customer authentication (such as 3D Secure cards or interactive mobile money authorization), multi-channel payments, and frontend checkout sessions.
 
 ### Authentication
-Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+Pursar follows the **Stripe standard HTTP Basic Authentication** format. Pass your Secret Key as the Basic Auth username (with an empty password), or in the `Authorization: Bearer` header.
+
+---
 
 ### Request Body
 
-#### Customer Information
-<ParamField body="firstname" type="string" required>
-  Customer's first name.
-</ParamField>
-
-<ParamField body="lastname" type="string" required>
-  Customer's last name.
-</ParamField>
-
-<ParamField body="email" type="string">
-  Customer's email address. Required if `phone` is not provided. Used for sending receipts and linking saved payment methods.
-</ParamField>
-
-<ParamField body="phone" type="string">
-  Customer's phone number with country prefix (e.g., `237612345678`). Required if `email` is not provided.
-</ParamField>
-
-#### Payment Details
-<ParamField body="amount" type="string" required>
-  Amount in the smallest currency unit. e.g., "1000" for 1000 XAF. This should be a string to maintain precision.
+<ParamField body="amount" type="integer | string" required>
+  Amount intended to be collected in the currency's standard units or minor units.
 </ParamField>
 
 <ParamField body="currency" type="string" default="XAF">
-  Three-letter ISO currency code. e.g., `XAF`, `NGN`, `USD`.
-</ParamField>
-
-<ParamField body="description" type="string" required>
-  A brief description of the transaction, often shown on the customer's bank statement or receipt.
-</ParamField>
-
-<ParamField body="merchant_reference" type="string" required>
-  Your unique identifier for the transaction. This is used for reconciliation and prevents duplicate charges via idempotency.
-</ParamField>
-
-#### Configuration
-<ParamField body="fee_bearer" type="string" default="merchant">
-  Specifies who bears the transaction fees. 
-  - `merchant`: (Default) Fees are deducted from the payout amount you receive. The customer pays exactly the `amount`.
-  - `customer`: Fees are added on top of the `amount`. The customer pays `amount + fees`, and you receive the full `amount`.
-</ParamField>
-
-<ParamField body="confirmation_method" type="string" default="automatic">
-  How the payment should be confirmed.
-  - `automatic`: (Default) Suitable for hosted checkout pages.
-  - `manual`: Requires a separate server-side confirmation call.
-</ParamField>
-
-<ParamField body="confirm" type="boolean" default="false">
-  Set to `true` to immediately attempt to confirm the PaymentIntent if a payment method is already attached or provided.
-</ParamField>
-
-<ParamField body="items" type="array">
-  An array of objects representing line items in the order. Each item should have `name`, `price`, `currency`, and `quantity`.
-</ParamField>
-
-<ParamField body="redirect_url" type="string">
-  The URL to redirect the customer to after they complete the payment on a external gateway or hosted page.
-</ParamField>
-
-<ParamField body="metadata" type="object">
-  Set of key-value pairs that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
-</ParamField>
-
-<ParamField body="collect_shipping_address" type="boolean" default="false">
-  Whether to prompt the customer for a shipping address during the checkout process.
+  Three-letter ISO currency code (`XAF`, `XOF`, `GHS`, `KES`, `USD`, `EUR`).
 </ParamField>
 
 <ParamField body="payment_method_types" type="array">
-  The list of payment method types (e.g., `['card', 'mobile_money']`) that this PaymentIntent is allowed to use.
+  The list of payment method types enabled for this payment:
+  - `mobilemoneyxaf`: Central African CEMAC mobile money (MTN, Orange, EU)
+  - `mobilemoneyxof`: West African UEMOA mobile money (Orange, MTN, Moov, Wave)
+  - `ghanamobilemoney`: Ghana mobile money (MTN, Telecel, AT)
+  - `mpesa`: Kenya M-Pesa
+  - `card`: International and local debit/credit cards (Visa, Mastercard, Verve)
+  - `banktransfer`: Local real-time bank transfers
 </ParamField>
 
-### Response
+<ParamField body="customer_name" type="string">
+  Customer's full name.
+</ParamField>
 
-<ResponseField name="id" type="string">
-  Unique identifier for the PaymentIntent.
-</ResponseField>
+<ParamField body="customer_email" type="string">
+  Customer's email address for notifications and digital receipt delivery.
+</ParamField>
 
-<ResponseField name="object" type="string">
-  String representing the object's type. Objects of the same type share the same value. Value is `payment_intent`.
-</ResponseField>
+<ParamField body="phone" type="string">
+  Customer's phone number with international country prefix (e.g., `+237671234567`).
+</ParamField>
 
-<ResponseField name="amount" type="string">
-  Amount intended to be collected, in the smallest currency unit (e.g., "1000" for 1000 XAF).
-</ResponseField>
+<ParamField body="description" type="string">
+  An arbitrary description string displayed on receipts and buyer checkout headers.
+</ParamField>
 
-<ResponseField name="currency" type="string">
-  Three-letter ISO currency code.
-</ResponseField>
+<ParamField body="merchant_reference" type="string">
+  Your internal order or invoice ID. Automatically generated if omitted.
+</ParamField>
 
-<ResponseField name="status" type="string">
-  Status of the PaymentIntent: `requires_action`, `processing`, `succeeded`, `failed`, `canceled`.
-</ResponseField>
+<ParamField body="metadata" type="object">
+  Custom key-value pairs stored alongside the PaymentIntent.
+</ParamField>
 
-<ResponseField name="client_secret" type="string">
-  The client secret of this PaymentIntent. Used for client-side retrieval and confirmation.
-</ResponseField>
+---
 
-<ResponseField name="payment_ref" type="string">
-  PaveWay's unique public reference for this transaction (e.g., `PWG_...`).
-</ResponseField>
+### Code Examples
 
-<ResponseField name="merchant_reference" type="string">
-  Your unique identifier for the transaction.
-</ResponseField>
+<CodeGroup>
+```bash cURL (Basic Auth)
+curl -X POST https://api.viarosandbox.com/v1/payment_intents \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 10000,
+    "currency": "XAF",
+    "payment_method_types": ["mobilemoneyxaf", "card"],
+    "customer_name": "Fatou Ndiaye",
+    "customer_email": "fatou@example.com",
+    "description": "Order #4810 Enterprise Subscription"
+  }'
+```
 
-<ResponseField name="checkout_url" type="string">
-  The URL to redirect your customer to for hosted checkout.
-</ResponseField>
+```python Python
+import requests
 
-<ResponseField name="customer" type="object">
-  <Expandable title="properties">
-    <ResponseField name="firstname" type="string">Customer's first name.</ResponseField>
-    <ResponseField name="lastname" type="string">Customer's last name.</ResponseField>
-    <ResponseField name="email" type="string">Customer's email.</ResponseField>
-  </Expandable>
-</ResponseField>
+api_key = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG"
+base_url = "https://api.viarosandbox.com/v1"
+
+response = requests.post(
+    f"{base_url}/payment_intents",
+    auth=(api_key, ""),
+    json={
+        "amount": 10000,
+        "currency": "XAF",
+        "payment_method_types": ["mobilemoneyxaf", "card"],
+        "customer_name": "Fatou Ndiaye",
+        "customer_email": "fatou@example.com",
+        "description": "Order #4810 Enterprise Subscription"
+    }
+)
+
+intent = response.json()
+print("Payment Intent ID:", intent["data"]["id"])
+print("Client Secret:", intent["data"]["client_secret"])
+print("Checkout URL:", intent["data"]["checkout_url"])
+```
+
+```javascript Node.js
+const apiKey = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG";
+
+const res = await fetch("https://api.viarosandbox.com/v1/payment_intents", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    amount: 10000,
+    currency: "XAF",
+    payment_method_types: ["mobilemoneyxaf", "card"],
+    customer_name: "Fatou Ndiaye",
+    customer_email: "fatou@example.com",
+    description: "Order #4810 Enterprise Subscription"
+  })
+});
+
+const result = await res.json();
+console.log(result.data);
+```
+</CodeGroup>
+
+---
+
+### Response Example
 
 <ResponseExample>
 ```json
@@ -134,20 +134,14 @@ Include your **Secret Key** in the `Authorization` header as a Bearer token.
   "status_code": 200,
   "response_type": "success",
   "data": {
-    "id": "695e7cdf77f104409c0e5760",
+    "id": "a9cd93b7-e861-4f40-900d-71fa0f67b687",
     "object": "payment_intent",
-    "amount": "1000",
+    "amount": "10000",
     "currency": "XAF",
     "status": "requires_action",
-    "client_secret": "pi_695e7cdf..._secret_...",
-    "payment_ref": "PWG_d4e9cd66d451",
-    "checkout_url": "https://checkout.pavewaygroup.com/initpay/695e7cdf77f104409c0e5760?client_secret=...",
-    "customer": {
-      "firstname": "John",
-      "lastname": "Doe",
-      "email": "john@example.com"
-    },
-    "metadata": {}
+    "client_secret": "pi_a9cd93b7-e861-4f40-900d-71fa0f67b687_sec_9f81a7b489",
+    "checkout_url": "https://checkout.viarosandbox.com/pay/a9cd93b7-e861-4f40-900d-71fa0f67b687?client_secret=...",
+    "created": 1793966000
   }
 }
 ```

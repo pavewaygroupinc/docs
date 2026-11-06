@@ -1,69 +1,92 @@
 ---
 title: "Introduction"
-description: "PaveWay Developer Portal: The easiest way to collect payments and resell financial services."
+description: "Pursar Developer Portal: The developer-first infrastructure for pan-African and global payments."
 ---
 
-Welcome to the PaveWay Developer Portal. Our platform enables businesses to integrate seamless local and global payment collections, as well as resell value-added services like eSIMs and Airtime.
+Welcome to the **Pursar Developer Portal**. Pursar is an enterprise-grade financial infrastructure platform designed following modern, developer-first standards (pioneered by Stripe). Pursar unifies mobile money operators across West, Central, and East Africa, global card processing, settlement ledgers, automated reconciliation, and identity compliance into a single cohesive API.
 
-## Prerequisites
-
-Before you can start using our APIs, ensure you have completed the following steps:
-
-1.  **Create a Business**: Sign up and create your business profile on the [PaveWay Business Portal](https://business.pavewaygroup.com).
-2.  **Enable 2FA**: For security, you must enable Two-Factor Authentication (2FA) under the **Security** tab in your [PaveWay Account](https://myaccount.pavewaygroup.com).
-3.  **Generate API Keys**: Once 2FA is enabled, navigate to the **API Settings** in your [PaveWay Account](https://myaccount.pavewaygroup.com) to generate your **Secret Key**, **Public Key**, and **Webhook Secret**.
-
-Once you have your keys, you can proceed to the [Authentication](/authentication) guide.
-
-## Get Started
-
-Everything you need to integrate PaveWay into your application.
+## What You Can Build
 
 <Columns cols={2}>
   <Card
-    title="Payment Collection"
-    icon="credit-card"
-    href="/guides/payments/overview"
+    title="Direct Mobile Money & Cards"
+    icon="bolt"
+    href="/api-reference/payments/charge-money"
   >
-    Learn how to accept payments in multiple currencies across Africa and the globe.
+    Collect payments directly via MTN Mobile Money, Orange Money, Moov, Wave, M-Pesa, Express Union, and Cards across Africa.
   </Card>
   <Card
-    title="eSIM & Financial Services"
-    icon="sim-card"
-    href="/guides/esim/inventory"
+    title="Payment Intents Lifecycle"
+    icon="arrow-progress"
+    href="/api-reference/payments/create-intent"
   >
-    Expand your business by reselling eSIMs and other financial products.
+    Coordinate complex, multi-step customer payment journeys with automated state management, authentication, and webhooks.
   </Card>
 </Columns>
 
-## Core Concepts
-
 <Columns cols={2}>
+  <Card
+    title="Hosted Checkout & Payment Links"
+    icon="bag-shopping"
+    href="/api-reference/checkout/sessions"
+  >
+    Redirect customers to a pre-built, conversion-optimized checkout page or share no-code payment links across social channels.
+  </Card>
+  <Card
+    title="Ledger & Multi-Currency Payouts"
+    icon="wallet"
+    href="/api-reference/balance/get"
+  >
+    Track real-time balances across XAF, XOF, GHS, KES, and USD wallets, and automate vendor settlements.
+  </Card>
+</Columns>
+
+---
+
+## Architectural Principles
+
+1. **Stripe-Standard API Conventions**:
+   Every endpoint uses consistent resource naming, predictable JSON response envelopes (`object`, `id`, `data`, `status`), standard ISO 4217 currency codes, and RFC 7807 error structures.
+2. **Standard Authentication**:
+   Supports standard HTTP Basic Auth (`curl -u sk_test_...:`) as well as Bearer tokens (`Authorization: Bearer sk_...`).
+3. **Idempotency**:
+   Pass an `Idempotency-Key` header with any POST request to prevent double-charges and ensure safe automatic retries.
+4. **Resilient Webhook Infrastructure**:
+   Every state change publishes signed webhook events (`whsec_...`) with cryptographic replay prevention.
+
+---
+
+## Environments & Base URLs
+
+| Environment | Base URL | Key Prefix | Use Case |
+| :--- | :--- | :--- | :--- |
+| **Sandbox (Test)** | `https://api.viarosandbox.com/v1` | `sk_test_...` / `pk_test_...` | Functional testing, sandbox mobile wallets, simulated 3DS |
+| **Production (Live)** | `https://api.pursar.com/v1` | `sk_live_...` / `pk_live_...` | Live financial settlement and production transactions |
+
+---
+
+## Next Steps
+
+<Columns cols={3}>
   <Card
     title="Authentication"
-    icon="lock"
+    icon="key"
     href="/authentication"
   >
-    Securely connect to our APIs using private and public keys.
+    Learn how to obtain and use your API keys securely.
   </Card>
   <Card
-    title="Webhooks"
-    icon="bell"
-    href="/api-reference/webhooks/overview"
+    title="Quickstart Guide"
+    icon="play"
+    href="/quickstart"
   >
-    Stay updated on transaction statuses and event notifications in real-time.
+    Make your first test payment in under 5 minutes.
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Explore detailed schemas and code samples for all endpoints.
   </Card>
 </Columns>
-
-## Localized for Africa
-
-PaveWay is built with a focus on local currency support. We provide optimized FX rates and specialized payment flows for countries including Cameroon, Central African Republic, Chad, Equatorial Guinea, Gabon, Republic of the Congo, Côte d'Ivoire, Senegal, Ghana, and Kenya.
-
-<Card
-  title="Local Currency Guide"
-  icon="africa"
-  href="/guides/payments/local-currency"
-  horizontal
->
-  Understand how we handle XAF, XOF, NGN, GHS, and more with optimized conversions.
-</Card>

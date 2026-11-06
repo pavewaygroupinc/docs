@@ -1,65 +1,151 @@
 ---
 title: "Signature Verification"
-description: "Ensure that webhook requests are authentic and sent by PaveWay."
+description: "Verify that incoming webhook events are authentic, untampered, and sent directly by Pursar."
 ---
 
-PaveWay signs every webhook request with a unique signature in the `X-PaveWay-Signature` header. You should verify this signature to prevent unauthorized requests from reaching your server.
+Pursar signs every webhook event using an HMAC-SHA256 signature scheme benchmarked against Stripe's webhook security standards. Webhook deliveries include the signature in the `X-Pursar-Signature` header (with `Paveway-Signature` and `Stripe-Signature` available for backward compatibility).
 
-## The Verification Method
+You must verify this signature to prevent unauthorized actors from spoofing payment notifications and to prevent replay attacks.
 
-The signature is generated using an **HMAC with SHA256** hash, using your **Webhook Signing Secret** as the key.
+## The Signature Header Scheme
 
-- **Header**: `X-PaveWay-Signature`
-- **Format**: `sha256=<signature_hex>`
-- **Payload**: The raw HTTP request body (JSON).
+The signature header contains a unix timestamp and one or more signatures:
 
-## Verification Example (Node.js)
+- **Header**: `X-Pursar-Signature` (also sent as `Paveway-Signature` and `Stripe-Signature`)
+- **Format**: `t=<timestamp>,v1=<signature_hex>`
+- **Signed Payload**: `<timestamp>.<raw_request_body>`
+- **Algorithm**: HMAC with SHA-256 using your endpoint's signing secret (`whsec_...`).
+
+The timestamp is included in the signed payload to prevent replay attacks. You should reject any event where the timestamp is older than 5 minutes (300 seconds) from your server's current time.
+
+---
+
+## Verification Example (Node.js / TypeScript)
 
 ```javascript
 const crypto = require('crypto');
 
-function verifyWebhook(payload, signatureHeader, secret) {
-  const [prefix, signature] = signatureHeader.split('=');
-  
-  if (prefix !== 'sha256') {
-    throw new Error('Invalid signature format');
+/**
+ * Verifies a Pursar webhook signature against the raw request body.
+ * @param {string|Buffer} rawBody - Raw unparsed HTTP request body
+ * @param {string} signatureHeader - Value of X-Pursar-Signature header
+ * @param {string} secret - Your webhook signing secret (whsec_...)
+ * @param {number} toleranceSeconds - Allowed clock drift in seconds (default: 300)
+ */
+function verifyWebhookSignature(rawBody, signatureHeader, secret, toleranceSeconds = 300) {
+  if (!signatureHeader || !secret) {
+    throw new Error('Missing signature header or signing secret');
   }
 
+  // 1. Extract timestamp and signatures from header
+  const parts = signatureHeader.split(',');
+  let timestamp = null;
+  const signatures = [];
+
+  for (const part of parts) {
+    const [key, value] = part.split('=');
+    if (key === 't') {
+      timestamp = parseInt(value, 10);
+    } else if (key === 'v1') {
+      signatures.push(value);
+    }
+  }
+
+  if (!timestamp || signatures.length === 0) {
+    throw new Error('Malformed signature header format');
+  }
+
+  // 2. Prevent replay attacks (check timestamp tolerance)
+  const currentTime = Math.floor(Date.now() / 1000);
+  if (Math.abs(currentTime - timestamp) > toleranceSeconds) {
+    throw new Error('Webhook timestamp outside allowed tolerance (possible replay attack)');
+  }
+
+  // 3. Compute expected HMAC-SHA256 over `${timestamp}.${rawBody}`
+  const signedPayload = `${timestamp}.${typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8')}`;
   const expectedSignature = crypto
     .createHmac('sha256', secret)
-    .update(payload)
+    .update(signedPayload)
     .digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  );
+  // 4. Constant-time comparison
+  const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+  const isValid = signatures.some((sig) => {
+    const sigBuffer = Buffer.from(sig, 'utf8');
+    return sigBuffer.length === expectedBuffer.length && crypto.timingSafeEqual(sigBuffer, expectedBuffer);
+  });
+
+  if (!isValid) {
+    throw new Error('Webhook signature mismatch: payload verification failed');
+  }
+
+  return true;
 }
 ```
 
-## Verification Example (Python)
+---
+
+## Verification Example (Python 3)
 
 ```python
+import time
 import hmac
 import hashlib
 
-def verify_webhook(payload, signature_header, secret):
-    prefix, signature = signature_header.split('=')
-    
-    if prefix != 'sha256':
+def verify_webhook_signature(
+    raw_body: bytes,
+    signature_header: str,
+    secret: str,
+    tolerance_seconds: int = 300
+) -> bool:
+    """
+    Verifies a Pursar webhook signature against the raw binary request body.
+    """
+    if not signature_header or not secret:
         return False
-        
+
+    # 1. Parse timestamp and v1 signatures
+    header_parts = signature_header.split(",")
+    timestamp = None
+    signatures = []
+
+    for part in header_parts:
+        if "=" not in part:
+            continue
+        key, val = part.split("=", 1)
+        if key.strip() == "t":
+            try:
+                timestamp = int(val.strip())
+            except ValueError:
+                return False
+        elif key.strip() == "v1":
+            signatures.append(val.strip())
+
+    if not timestamp or not signatures:
+        return False
+
+    # 2. Check clock skew (replay protection)
+    now = int(time.time())
+    if abs(now - timestamp) > tolerance_seconds:
+        return False
+
+    # 3. Compute expected HMAC-SHA256 over f"{timestamp}." + raw_body
+    signed_payload = f"{timestamp}.".encode("utf-8") + raw_body
     expected_sig = hmac.new(
-        secret.encode(),
-        payload, # Raw bytes from request
+        secret.encode("utf-8"),
+        signed_payload,
         hashlib.sha256
     ).hexdigest()
-    
-    return hmac.compare_digest(signature, expected_sig)
+
+    # 4. Constant-time comparison
+    return any(hmac.compare_digest(sig, expected_sig) for sig in signatures)
 ```
+
+---
 
 ## Security Best Practices
 
-1.  **Raw Body**: Always use the raw binary request body for verification. Do not use a parsed JSON object, as re-stringifying it can change the character order or whitespace, causing signature mismatch.
-2.  **Timing Attacks**: Use a constant-comparison function (like `timingSafeEqual` in Node or `compare_digest` in Python) to prevent timing-based side-channel attacks.
-3.  **Secret Rotation**: If your signing secret is compromised, rotate it immediately in the Merchant Dashboard.
+1. **Use Raw Request Body**: Always compute the signature using the raw, unparsed binary request body (e.g. `req.rawBody` or `await request.body()`). Never verify against re-stringified JSON objects, as field reordering and whitespace variances will cause verification to fail.
+2. **Replay Protection**: Enforce the timestamp tolerance check. Do not disable tolerance verification in production.
+3. **Constant-Time Comparison**: Always use timing-safe comparison primitives (`crypto.timingSafeEqual` in Node or `hmac.compare_digest` in Python) to prevent timing side-channel analysis.
+4. **Endpoint Secret Storage**: Store signing secrets (`whsec_...`) in secure secrets storage (such as Google Cloud Secret Manager or encrypted environment variables) and rotate immediately if compromised.

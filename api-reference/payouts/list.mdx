@@ -1,0 +1,87 @@
+---
+title: "List Payouts"
+api: "GET /payouts"
+description: "Returns a list of existing payouts sent from your Pursar account."
+---
+
+Returns a paginated list of existing payouts sent from your account. Payouts are ordered by creation date, with the most recently initiated payout appearing first.
+
+---
+
+### Query Parameters
+
+<ParamField query="limit" type="integer" default="10">
+  A limit on the number of objects to be returned, between `1` and `100`.
+</ParamField>
+
+<ParamField query="status" type="string">
+  Filter payouts by status: `pending`, `in_transit`, `paid`, or `failed`.
+</ParamField>
+
+<ParamField query="currency" type="string">
+  Filter payouts by currency code (`XAF`, `XOF`, etc.).
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/payouts \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -d limit=10
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/payouts"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth, params={"limit": 10})
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function listPayouts() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/payouts', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    },
+    params: { limit: 10 }
+  });
+
+  console.log(response.data);
+}
+
+listPayouts();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "po_7a1b2c3d4e5f",
+      "object": "payout",
+      "amount": 100000,
+      "currency": "XAF",
+      "status": "paid",
+      "arrival_date": "2026-11-06T14:30:00Z",
+      "destination": "pm_bank_afriland_01",
+      "description": "Weekly merchant payout",
+      "created_at": "2026-11-06T12:00:00Z"
+    }
+  ],
+  "has_more": false
+}
+```

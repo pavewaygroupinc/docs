@@ -1,0 +1,149 @@
+---
+title: "Checkout Sessions"
+api: "POST /checkout/sessions"
+description: "Create a hosted Checkout Session to securely collect payments with Pursar's pre-built payment page."
+---
+
+A **Checkout Session** represents your customer's session as they pay for one-time purchases or subscriptions through Pursar's hosted checkout page. When you create a Checkout Session, Pursar returns a `url` to which you redirect your customer.
+
+After the customer completes their payment, Pursar redirects them to your specified `success_url` with the checkout session ID.
+
+### Authentication
+
+Pursar follows the **Stripe standard HTTP Basic Authentication** format. Pass your Secret Key as the Basic Auth username (with an empty password), or in the `Authorization: Bearer` header.
+
+---
+
+### Request Body
+
+<ParamField body="amount" type="number" required>
+  The total amount to charge in the currency's standard or minor unit (e.g., `15000` for 15,000 XAF).
+</ParamField>
+
+<ParamField body="currency" type="string" default="XAF">
+  Three-letter ISO currency code (`XAF`, `XOF`, `GHS`, `KES`, `USD`, `EUR`).
+</ParamField>
+
+<ParamField body="success_url" type="string" required>
+  The URL to which Pursar redirects your customer when the payment is successful. You can include `{CHECKOUT_SESSION_ID}` as a template parameter.
+</ParamField>
+
+<ParamField body="cancel_url" type="string">
+  The URL to which Pursar redirects your customer if they choose to cancel or abandon the checkout page.
+</ParamField>
+
+<ParamField body="customer_email" type="string">
+  If provided, this email is pre-filled on the hosted checkout page.
+</ParamField>
+
+<ParamField body="client_reference_id" type="string">
+  A unique string to reference the Checkout Session on your system.
+</ParamField>
+
+<ParamField body="line_items" type="array">
+  A list of items the customer is purchasing.
+  <Expandable title="line_items properties">
+    <ParamField body="name" type="string" required>Product or item title.</ParamField>
+    <ParamField body="amount" type="number" required>Unit price.</ParamField>
+    <ParamField body="quantity" type="integer" default="1">Item quantity.</ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Key-value pairs for attaching custom data to the session and downstream transaction.
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL (Stripe Standard Basic Auth)
+curl -X POST https://api.viarosandbox.com/v1/checkout/sessions \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 15000,
+    "currency": "XAF",
+    "customer_email": "amara@example.com",
+    "success_url": "https://example.com/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+    "cancel_url": "https://example.com/checkout/cancel",
+    "metadata": {
+      "order_id": "ord_991823"
+    }
+  }'
+```
+
+```python Python
+import requests
+
+api_key = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG"
+url = "https://api.viarosandbox.com/v1/checkout/sessions"
+
+payload = {
+    "amount": 15000,
+    "currency": "XAF",
+    "customer_email": "amara@example.com",
+    "success_url": "https://example.com/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+    "cancel_url": "https://example.com/checkout/cancel",
+    "metadata": {
+        "order_id": "ord_991823"
+    }
+}
+
+response = requests.post(url, auth=(api_key, ""), json=payload)
+session = response.json()["data"]
+
+print("Redirect URL:", session["url"])
+```
+
+```javascript Node.js
+const apiKey = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG";
+
+const res = await fetch("https://api.viarosandbox.com/v1/checkout/sessions", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    amount: 15000,
+    currency: "XAF",
+    customer_email: "amara@example.com",
+    success_url: "https://example.com/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+    cancel_url: "https://example.com/checkout/cancel"
+  })
+});
+
+const session = (await res.json()).data;
+console.log("Hosted Checkout URL:", session.url);
+```
+</CodeGroup>
+
+---
+
+### Response Example
+
+<ResponseExample>
+```json
+{
+  "status_code": 201,
+  "response_type": "success",
+  "data": {
+    "id": "cs_0b327b82-8419-4bf9-8b83-b7b51b72b012",
+    "object": "checkout.session",
+    "payment_intent": "0b327b82-8419-4bf9-8b83-b7b51b72b012",
+    "amount_total": 15000.0,
+    "currency": "XAF",
+    "customer_email": "amara@example.com",
+    "payment_status": "unpaid",
+    "status": "open",
+    "success_url": "https://example.com/checkout/success?session_id={CHECKOUT_SESSION_ID}",
+    "cancel_url": "https://example.com/checkout/cancel",
+    "url": "https://checkout.viarosandbox.com/pay/0b327b82-8419-4bf9-8b83-b7b51b72b012?client_secret=...",
+    "client_secret": "pi_0b327b82_secret_...",
+    "created": 1793966500
+  }
+}
+```
+</ResponseExample>

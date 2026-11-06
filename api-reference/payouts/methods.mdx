@@ -1,0 +1,87 @@
+---
+title: "Payout Methods"
+api: "GET /payout_methods"
+description: "List and manage recipient bank accounts and mobile money wallets registered for payouts."
+---
+
+Payout Methods represent external bank accounts, mobile money wallets, or international recipient details linked to your Pursar business profile for withdrawals and disbursements.
+
+---
+
+### List Payout Methods
+
+Retrieve all configured payout destinations for your account.
+
+`GET /payout_methods`
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/payout_methods \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/payout_methods"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function listPayoutMethods() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/payout_methods', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    }
+  });
+
+  console.log(response.data);
+}
+
+listPayoutMethods();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "pm_bank_afriland_01",
+      "object": "payout_method",
+      "type": "bank_account",
+      "currency": "XAF",
+      "bank_name": "Afriland First Bank",
+      "account_holder_name": "Viaro Technologies SARL",
+      "account_number_last4": "4092",
+      "country": "CM",
+      "is_default": true,
+      "status": "verified"
+    },
+    {
+      "id": "pm_momo_mtn_02",
+      "object": "payout_method",
+      "type": "mobile_money",
+      "currency": "XAF",
+      "network": "MTN",
+      "phone": "+237671234567",
+      "account_holder_name": "Amara Diallo",
+      "country": "CM",
+      "is_default": false,
+      "status": "verified"
+    }
+  ]
+}
+```

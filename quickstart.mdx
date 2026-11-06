@@ -1,80 +1,134 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Developer Quickstart"
+description: "Accept your first payment with Pursar in under 5 minutes using our Stripe-standard APIs."
 ---
 
-## Get started in three steps
+This guide walks you through accepting your first payment using Pursar's Sandbox environment. You'll learn how to authenticate with your test API key and trigger a Mobile Money or Card payment.
 
-Get your documentation site running locally and make your first customization.
+---
 
-### Step 1: Set up your local environment
+## Step 1: Obtain your Sandbox API Key
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+In your [Pursar Merchant Dashboard](https://business.viarosandbox.com), navigate to **Developers > API Keys** to copy your test Secret Key:
 
-### Step 2: Deploy your changes
+```bash
+sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG
+```
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+---
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Step 2: Choose your Integration Path
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
+Pursar offers two primary ways to collect payments:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Direct Mobile Money Charge" icon="mobile" href="/api-reference/payments/charge-money">
+    Trigger an instant USSD / STK push on the customer's phone without redirecting them to a web page. Best for mobile apps, USSD menus, and custom checkout flows.
+  </Card>
+  <Card title="Hosted Checkout Sessions" icon="credit-card" href="/api-reference/checkout/sessions">
+    Redirect customers to a secure, mobile-optimized checkout page supporting Mobile Money, Cards, and Bank Transfer with zero frontend code.
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+---
+
+## Step 3: Make your First API Request
+
+Let's initiate a direct Mobile Money charge for 25,000 XAF to an MTN Cameroon mobile wallet:
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/charges/mobile-money \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 25000,
+    "currency": "XAF",
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Quickstart Test License #101"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/charges/mobile-money"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+payload = {
+    "amount": 25000,
+    "currency": "XAF",
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Quickstart Test License #101"
+}
+
+response = requests.post(url, auth=auth, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function testCharge() {
+  const response = await axios.post(
+    'https://api.viarosandbox.com/v1/charges/mobile-money',
+    {
+      amount: 25000,
+      currency: 'XAF',
+      phone: '+237671234567',
+      customer_name: 'Amara Diallo',
+      customer_email: 'amara@example.com',
+      description: 'Quickstart Test License #101'
+    },
+    {
+      auth: {
+        username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+        password: ''
+      }
+    }
+  );
+
+  console.log(response.data);
+}
+
+testCharge();
+```
+</CodeGroup>
+
+### Expected Response
+
+In Sandbox mode, Pursar instantly simulates the telco response and transitions the charge to `requires_action` (or `successful`):
+
+```json
+{
+  "id": "tx_4a1b2c3d4e5f",
+  "object": "charge",
+  "status": "requires_action",
+  "amount": 25000,
+  "currency": "XAF",
+  "customer_name": "Amara Diallo",
+  "customer_email": "amara@example.com",
+  "description": "Quickstart Test License #101",
+  "payment_method": {
+    "type": "mobile_money",
+    "network": "MTN",
+    "phone": "+237671234567"
+  },
+  "next_action": {
+    "type": "verify_with_phone",
+    "instructions": "A push prompt has been sent to +237671234567. Authorize with your Mobile Money PIN."
+  }
+}
+```
+
+---
+
+## Step 4: Listen for Webhooks
+
+To update your database and unlock digital products when payments succeed, register a webhook listener at `POST /webhook_endpoints`. Pursar delivers HMAC SHA-256 signed event payloads (`charge.successful`, `payment_intent.succeeded`).
+
+Check the [Webhook Verification Guide](/api-reference/webhooks/verification) for full signature validation examples in Python, Node.js, and PHP.

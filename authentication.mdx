@@ -1,73 +1,158 @@
 ---
 title: "Authentication"
-description: "How to authenticate your requests with the PaveWay API."
+description: "How to authenticate requests with the Pursar API using Stripe-standard conventions."
 ---
 
-PaveWay uses API keys to authenticate requests. You can manage your API keys in the Business Dashboard.
-
-## Getting Your Keys
-
-To protect your business data, PaveWay requires a few security steps before keys can be issued:
-
-1.  **Register your Business**: Complete your KYC and business setup on the [Business Portal](https://business.pavewaygroup.com).
-2.  **Secure your Account**: Head to **Settings > Security** and enable **Two-Factor Authentication (2FA)**.
-3.  **Reveal Keys**: Go to **Developers > API Keys**. Your Secret Keys will only be displayed once—make sure to store them in a secure environment variable or vault.
+Pursar uses API keys to authenticate requests. Your API keys carry significant privileges, so be sure to keep them confidential. Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, or front-end bundles.
 
 ## Key Types
 
-PaveWay provides three types of keys to handle different integration scenarios:
+Pursar provides distinct key types for server-side operations, client-side interactions, and webhook verification:
 
-| Key Type | Prefix | Usage |
-| :--- | :--- | :--- |
-| **Secret Key** | `sk_...` | Used for server-to-server API calls. Keep this secure! |
-| **Public Key** | `pk_...` | Used in client-side SDKs. Never expose this key in client-side code. |
-| **Webhook Secret** | `whsec_...` | Used to verify that events sent to your server are from PaveWay. |
+| Key Type | Prefix | Location | Safe for Client? | Usage |
+| :--- | :--- | :--- | :--- | :--- |
+| **Secret Key** | `sk_test_...` / `sk_live_...` | Server backend | **NO** (Never expose) | Full API access: charges, refunds, customers, transfers, payouts |
+| **Publishable Key** | `pk_test_...` / `pk_live_...` | Mobile / Web client | **YES** | Client-side SDKs, tokenization, initiating frontend checkout |
+| **Webhook Secret** | `whsec_...` | Server backend | **NO** | Validating HMAC SHA-256 signatures on inbound webhook events |
+
+---
+
+## Supported Authentication Methods
+
+Pursar follows the **Stripe standard HTTP Basic Authentication** format, while also supporting Bearer tokens and custom header formats.
+
+### Method 1: HTTP Basic Auth (Recommended & Stripe Standard)
+
+Pass your secret API key as the Basic Auth username. You do not need to provide a password.
+
+```bash
+curl https://api.viarosandbox.com/v1/charges/mobile-money \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 25000,
+    "currency": "XAF",
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Invoice #104 License"
+  }'
+```
+
+### Method 2: Bearer Token
+
+You can also pass your API key as a Bearer token in the standard `Authorization` header:
+
+```bash
+curl https://api.viarosandbox.com/v1/payment_intents \
+  -H "Authorization: Bearer sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 5000,
+    "currency": "XAF",
+    "payment_method_types": ["mobilemoneyxaf", "card"]
+  }'
+```
+
+### Method 3: `x-api-key` Header
+
+For API gateways or serverless runtimes where custom headers are preferred:
+
+```http
+x-api-key: sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG
+```
+
+---
+
+## Code Examples
+
+<CodeGroup>
+```python Python
+import requests
+
+api_key = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG"
+base_url = "https://api.viarosandbox.com/v1"
+
+# Using standard HTTP Basic Auth (Stripe pattern)
+response = requests.post(
+    f"{base_url}/charges/mobile-money",
+    auth=(api_key, ""),
+    json={
+        "amount": 25000,
+        "currency": "XAF",
+        "phone": "+237671234567",
+        "customer_name": "Amara Diallo",
+        "customer_email": "amara@example.com",
+        "description": "Premium License #104"
+    }
+)
+
+charge = response.json()
+print("Transaction ID:", charge["data"]["id"])
+```
+
+```javascript Node.js / TypeScript
+const apiKey = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG";
+const baseUrl = "https://api.viarosandbox.com/v1";
+
+const response = await fetch(`${baseUrl}/charges/mobile-money`, {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    amount: 25000,
+    currency: "XAF",
+    phone: "+237671234567",
+    customer_name: "Amara Diallo",
+    customer_email: "amara@example.com",
+    description: "Premium License #104"
+  })
+});
+
+const charge = await response.json();
+console.log("Transaction ID:", charge.data.id);
+```
+
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/charges/mobile-money \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 25000,
+    "currency": "XAF",
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Premium License #104"
+  }'
+```
+</CodeGroup>
+
+---
 
 ## Environments
 
-PaveWay provides two distinct environments to ensure you can build and test safely.
-
-### Switching Environments
-
-To toggle between environments, you must update two things in your code:
-1.  **The API Key**: Use your `sk_test_...` key for testing and your `sk_live_...` key for production.
-2.  **The Base URL**:
-    - **Live**: `https://api.pavewaygroup.com/v1`
-    - **Test**: `https://paveway-gateway-adwfci84.uc.gateway.dev/v1`
-
-| Environment | Key Prefix | Base URL |
+| Environment | Base URL | Description |
 | :--- | :--- | :--- |
-| **Sandbox (Test)** | `sk_test_` | `https://paveway-gateway-adwfci84.uc.gateway.dev/v1` |
-| **Production (Live)** | `sk_live_` | `https://api.pavewaygroup.com/v1` |
+| **Sandbox (Test)** | `https://api.viarosandbox.com/v1` | Isolated testing environment. Payments do not charge real bank accounts or cellular accounts. |
+| **Production (Live)** | `https://api.pursar.com/v1` | Live financial network connected to production cellular telcos and banking switches. |
 
-## Including Keys in Requests
+---
 
-For server-side requests (Secret Keys), include your key in the `Authorization` header as a Bearer token.
+## Idempotency Keys
+
+To avoid double charges caused by network timeouts or retries, Pursar supports idempotency keys for all mutating endpoints (`POST`, `PUT`).
+
+Attach an `Idempotency-Key` header with any unique string (e.g., a UUID v4):
 
 ```bash
-curl https://api.pavewaygroup.com/v1/payment-intents \
-  -H "Authorization: Bearer sk_test_your_secret_key_here" \
+curl https://api.viarosandbox.com/v1/payment_intents \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Idempotency-Key: e82f3a47-7922-4a0b-9df0-7d7213ff2e61" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 ```
 
-### X-API-KEY Header (Legacy/Alternative)
-
-Some endpoints also support the custom `x-api-key` header for cases where Bearer authentication is not suitable:
-
-```http
-x-api-key: sk_test_your_secret_key_here
-```
-
-## Rate Limiting
-
-To ensure API stability, PaveWay enforces rate limits on all endpoints. Limits are applied per API key and per IP address.
-
-- **Standard Endpoints**: 60 requests per minute.
-- **Payment Creation**: 20 requests per minute.
-- **Card Tokenization**: 10 requests per minute.
-
-If you exceed these limits, the API will return a `429 Too Many Requests` error. If you require higher limits for your production application, please contact our support team.
-
-> [!CAUTION]
-> Never share your Secret Keys or include them in client-side code (browsers, mobile apps). If a key is compromised, rotate it immediately in the Business Dashboard.
+If a connection drops during an API call, you can retry the request with the identical `Idempotency-Key` without risk of creating duplicate transactions or multiple charges.

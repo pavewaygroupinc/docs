@@ -1,0 +1,86 @@
+---
+title: "Compliance & KYB"
+api: "GET /compliance/summary"
+description: "Inspect business onboarding, Know Your Business (KYB), AML screening, and regulatory verification status."
+---
+
+Pursar maintains enterprise-grade Anti-Money Laundering (AML), Counter-Terrorist Financing (CTF), and Know Your Business (KYB) compliance across all supported African regional jurisdictions (CEMAC / COBAC, UEMOA / BCEAO, Bank of Ghana, Central Bank of Kenya).
+
+You can use the Compliance API to programmatically inspect your business tier limits, regulatory status, and outstanding verification requirements.
+
+---
+
+### Retrieve Compliance Status
+
+`GET /compliance/status`
+
+Retrieves the current compliance standing and processing tier limits for your business.
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/compliance/status \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/compliance/status"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function getComplianceStatus() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/compliance/status', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    }
+  });
+
+  console.log(response.data);
+}
+
+getComplianceStatus();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "business_id": "biz_viaro_staging_sandbox",
+  "overall_status": "verified",
+  "kyb_status": "approved",
+  "aml_screening_status": "passed",
+  "tier": "tier_2_enterprise",
+  "daily_volume_limit": 50000000,
+  "single_transaction_limit": 5000000,
+  "currency": "XAF",
+  "payouts_enabled": true,
+  "charges_enabled": true,
+  "verified_at": "2026-11-06T10:00:00Z"
+}
+```
+
+---
+
+### Retrieve Compliance Summary
+
+`GET /compliance/summary`
+
+Returns comprehensive verification milestones and document audits for your merchant account.
+
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/compliance/summary \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```

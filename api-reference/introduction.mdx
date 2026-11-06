@@ -1,33 +1,92 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Introduction"
+description: "The Pursar REST API allows you to accept payments, manage customers, execute payouts, and automate financial operations across Africa and globally."
 ---
 
+Welcome to the Pursar Developer API reference. The Pursar API is organized around REST. Our API has predictable resource-oriented URLs, accepts JSON-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
+
+## Environments & Base URLs
+
+Pursar provides two environments: a risk-free Sandbox for development and testing, and a Live Production environment.
+
+| Environment | Base URL | Purpose |
+| :--- | :--- | :--- |
+| **Sandbox (Test)** | `https://api.viarosandbox.com/v1` | Safe simulation of all payment channels, telcos, and webhooks |
+| **Production (Live)** | `https://api.pursar.com/v1` | Live money movement across connected banks and telcos |
+
 <Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
+  All requests must be made over HTTPS. Calls made over plain HTTP will fail. You do not need to append trailing slashes to URLs.
 </Note>
 
-## Welcome
-
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+---
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Pursar follows the **Stripe-standard HTTP Basic Authentication** scheme. You authenticate to the API by providing one of your API secret keys:
+
+- **Basic Authentication (Recommended)**: Pass your Secret Key as the username with an empty password (`-u sk_test_...:`).
+- **Bearer Token**: Pass your Secret Key in the standard HTTP `Authorization` header (`Authorization: Bearer sk_test_...`).
+- **Custom Header**: Pass your Secret Key in the `x-api-key` header (`x-api-key: sk_test_...`).
+
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/balance \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+### Key Prefixes
+
+| Prefix | Environment | Permissions |
+| :--- | :--- | :--- |
+| `sk_test_` | Sandbox | Full access to test data and simulated payment networks. |
+| `pk_test_` | Sandbox | Publishable key safe for client-side checkout and mobile SDKs. |
+| `sk_live_` | Production | Full access to live transactions and financial settlements. |
+| `pk_live_` | Production | Client-side publishable key for production checkout integrations. |
+
+---
+
+## HTTP Status Codes
+
+Pursar uses conventional HTTP response codes to indicate the success or failure of an API request:
+
+| Code | Meaning |
+| :--- | :--- |
+| `200 OK` | The request succeeded and the response contains the requested data. |
+| `201 Created` | A resource was successfully created. |
+| `400 Bad Request` | Missing or malformed parameters. Check the error message for details. |
+| `401 Unauthorized` | Invalid or missing API key. |
+| `403 Forbidden` | The API key does not have permissions for the requested resource. |
+| `404 Not Found` | The requested resource does not exist. |
+| `409 Conflict` | An idempotency key collision occurred or resource conflict. |
+| `422 Unprocessable` | Semantic validation error (e.g., invalid phone format or currency). |
+| `500 Server Error` | Something went wrong on Pursar's side. Contact support if persistent. |
+
+---
+
+## Error Handling
+
+When an error occurs, Pursar returns an error object following Stripe standard conventions:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  "error": {
+    "type": "invalid_request_error",
+    "code": "parameter_missing",
+    "message": "Missing required param: phone",
+    "param": "phone"
   }
-]
+}
+```
+
+---
+
+## Idempotency
+
+Pursar supports idempotency for safely retrying requests without accidentally performing the same operation twice. To perform an idempotent request, provide an `Idempotency-Key: <key>` header with a unique UUID or transaction reference.
+
+```bash
+curl -X POST https://api.viarosandbox.com/v1/charges/mobile-money \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Idempotency-Key: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
 ```

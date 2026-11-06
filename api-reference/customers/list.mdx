@@ -1,48 +1,83 @@
 ---
 title: "List Customers"
 api: "GET /customers"
-description: "Retrieve a list of all customers associated with your business."
+description: "Returns a paginated list of your customers."
 ---
 
-Returns a list of your customers. The customers are returned sorted by creation date, with the most recent appearing first.
+Returns a list of your customers, ordered by most recently created.
 
-### Authentication
-Include your **Secret Key** in the `Authorization` header as a Bearer token.
+---
+
+### Query Parameters
+
+<ParamField query="limit" type="integer" default="10">
+  A limit on the number of objects to be returned, between `1` and `100`.
+</ParamField>
+
+<ParamField query="email" type="string">
+  Filter customers matching a specific email address.
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/customers \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -d limit=10
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/customers"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth, params={"limit": 10})
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function listCustomers() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/customers', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    },
+    params: { limit: 10 }
+  });
+
+  console.log(response.data);
+}
+
+listCustomers();
+```
+</CodeGroup>
+
+---
 
 ### Response
 
-The response is a JSON object with a `data` field containing an array of customer objects.
-
-#### Customer Object Fields
-
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `id` | string | Unique identifier for the customer. |
-| `firstname` | string | Customer's first name. |
-| `lastname` | string | Customer's last name. |
-| `email` | string | Customer's email address. |
-| `phone` | string | Customer's phone number. |
-| `balance` | number | Current account balance for the customer (in smallest currency unit). |
-| `active` | boolean | Whether the customer profile is currently active. |
-| `created_at` | timestamp | Unix timestamp when the customer was created. |
-
-<ResponseExample>
 ```json
 {
-  "status_code": 200,
-  "response_type": "success",
+  "object": "list",
   "data": [
     {
-      "id": "658dc...",
-      "firstname": "John",
-      "lastname": "Doe",
-      "email": "john.doe@example.com",
-      "phone": "237612345678",
+      "id": "cus_9f1a2b3c4d5e",
+      "object": "customer",
+      "name": "Jane Doe",
+      "email": "jane.doe@example.com",
+      "phone": "+237670000001",
+      "currency": "XAF",
       "balance": 0,
-      "active": true,
-      "created_at": 1704873600
+      "delinquent": false,
+      "created_at": "2026-11-06T12:00:00Z"
     }
-  ]
+  ],
+  "has_more": false
 }
 ```
-</ResponseExample>

@@ -1,0 +1,123 @@
+---
+title: "Create a Customer"
+api: "POST /customers"
+description: "Creates a new customer object to track payments, payment methods, and subscriptions."
+---
+
+Customer objects allow you to track multiple payments, invoices, and subscriptions that belong to the same person or organization.
+
+---
+
+### Request Body
+
+<ParamField body="name" type="string" required>
+  The customer's full name or business entity name.
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  The customer's primary email address for sending receipts and invoices.
+</ParamField>
+
+<ParamField body="phone" type="string">
+  The customer's primary phone number in international E.164 format (e.g., `+237670000001`).
+</ParamField>
+
+<ParamField body="description" type="string">
+  An arbitrary string that you can attach to a customer object.
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Key-value pairs for storing arbitrary custom attributes (e.g., internal user ID, membership tier).
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/customers \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane Doe",
+    "email": "jane.doe@example.com",
+    "phone": "+237670000001",
+    "metadata": {
+      "tier": "gold",
+      "internal_user_id": "usr_90210"
+    }
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/customers"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+payload = {
+    "name": "Jane Doe",
+    "email": "jane.doe@example.com",
+    "phone": "+237670000001",
+    "metadata": {
+        "tier": "gold",
+        "internal_user_id": "usr_90210"
+    }
+}
+
+response = requests.post(url, auth=auth, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function createCustomer() {
+  const response = await axios.post(
+    'https://api.viarosandbox.com/v1/customers',
+    {
+      name: 'Jane Doe',
+      email: 'jane.doe@example.com',
+      phone: '+237670000001',
+      metadata: {
+        tier: 'gold',
+        internal_user_id: 'usr_90210'
+      }
+    },
+    {
+      auth: {
+        username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+        password: ''
+      }
+    }
+  );
+
+  console.log(response.data);
+}
+
+createCustomer();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "id": "cus_9f1a2b3c4d5e",
+  "object": "customer",
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "phone": "+237670000001",
+  "currency": "XAF",
+  "balance": 0,
+  "delinquent": false,
+  "metadata": {
+    "tier": "gold",
+    "internal_user_id": "usr_90210"
+  },
+  "created_at": "2026-11-06T12:00:00Z"
+}
+```

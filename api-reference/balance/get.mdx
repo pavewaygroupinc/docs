@@ -1,0 +1,82 @@
+---
+title: "Retrieve Balance"
+api: "GET /balance"
+description: "Retrieves the current available and pending balances on your account across supported currencies."
+---
+
+Retrieves the current financial balance of your Pursar account. The balance is broken down into:
+- **Available**: Funds that have cleared and are immediately eligible for automated or manual payout.
+- **Pending**: Funds from recently processed charges that are awaiting clearing.
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/balance \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/balance"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function getBalance() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/balance', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    }
+  });
+
+  console.log(response.data);
+}
+
+getBalance();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "object": "balance",
+  "livemode": false,
+  "available": [
+    {
+      "amount": 1450000,
+      "currency": "xaf"
+    },
+    {
+      "amount": 820000,
+      "currency": "xof"
+    },
+    {
+      "amount": 3500,
+      "currency": "ghs"
+    },
+    {
+      "amount": 42000,
+      "currency": "kes"
+    }
+  ],
+  "pending": [
+    {
+      "amount": 75000,
+      "currency": "xaf"
+    }
+  ]
+}
+```

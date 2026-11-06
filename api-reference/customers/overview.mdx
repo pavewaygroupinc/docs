@@ -1,23 +1,40 @@
 ---
 title: "Customers Overview"
-description: "Manage shopper profiles and link saved payment methods."
+description: "Manage customer profiles, saved payment methods, and transaction histories across Pursar."
 ---
 
-The Customers API is the central hub for managing shopper profiles within PaveWay. By creating customer records, you can:
+The Customers API allows you to create and manage customer profiles. Customer objects let you track recurring billing, saved payment methods, and lifetime transaction histories for individual shoppers and business clients.
 
-1.  **Simplify Checkout**: Link [Card Tokens](/api-reference/payments/card-tokens) to a customer's email to enable one-click payments.
-2.  **Manage Subscriptions**: All [Subscriptions](/api-reference/subscriptions/overview) are linked to a specific customer ID.
-3.  **Track History**: Monitor transaction history and balances for individual shoppers.
+### Key Capabilities
+
+1. **One-Click Payments**: Attach saved Mobile Money phone numbers or Card tokens for fast re-billing.
+2. **Subscriptions**: Link recurring subscription plans and automated invoice billing to a customer ID.
+3. **Financial Tracking**: View all charges, refunds, and invoices associated with a specific customer.
+
+---
+
+### Authentication
+
+Pursar follows the Stripe-standard HTTP Basic Authentication format (`-u sk_test_...:`), Bearer tokens, or `x-api-key`.
+
+---
 
 ### The Customer Object
 
-A customer object represents a unique person or business purchasing from your platform. It stores contact information, billing/shipping addresses, and metadata.
-
-#### Identification
-Customers are primarily identified by their unique `id`. However, for integrations like checkout, they are often looked up or linked via their **email** or **phone number**.
-
-#### Saved Payment Methods
-When a card is [tokenized](/api-reference/payments/card-tokens), if an email address is provided, it is automatically linked to any customer profile with that same email. This allows you to retrieve a customer's saved cards without storing sensitive data.
-
-### Authentication
-All Customer API endpoints require your **Secret Key** in the `Authorization` header as a Bearer token.
+```json
+{
+  "id": "cus_9f1a2b3c4d5e",
+  "object": "customer",
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "phone": "+237670000001",
+  "currency": "XAF",
+  "balance": 0,
+  "delinquent": false,
+  "metadata": {
+    "tier": "gold",
+    "internal_user_id": "usr_90210"
+  },
+  "created_at": "2026-11-06T12:00:00Z"
+}
+```

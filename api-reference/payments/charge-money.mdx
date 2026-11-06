@@ -1,106 +1,147 @@
 ---
 title: "Direct Mobile Money Charge"
 api: "POST /charges/mobile-money"
-description: "Directly collect payment from a mobile money wallet."
+description: "Initiate an instantaneous mobile money charge prompt across MTN, Orange, Moov, Wave, M-Pesa, and Express Union."
 ---
 
-The Direct Charge API allows you to initiate a mobile money collection without needing a hosted checkout page. This is ideal for mobile apps or custom checkout flows where you handle the user interface.
+The Direct Mobile Money Charge endpoint allows your backend to initiate a push payment directly to a customer's mobile money wallet without requiring them to visit a hosted web page. 
+
+Upon receiving this request, Pursar routes the transaction to the optimal regional telco aggregator and triggers an interactive USSD / STK push on the customer's mobile device asking them to authorize the payment with their mobile wallet PIN.
 
 ### Authentication
-Include your **Secret Key** in the `Authorization` header as a Bearer token.
+
+Pursar follows the **Stripe standard HTTP Basic Authentication** format. Pass your Secret Key as the Basic Auth username (with an empty password), or in the `Authorization: Bearer` header.
+
+---
 
 ### Request Body
 
-#### Customer Information
-<ParamField body="firstname" type="string" required>
-  Customer's first name.
+<ParamField body="amount" type="integer | string" required>
+  The amount to charge. Supports integer values (e.g., `25000`) or string representations (e.g., `"25000"`).
 </ParamField>
 
-<ParamField body="lastname" type="string" required>
-  Customer's last name.
-</ParamField>
-
-<ParamField body="email" type="string" required>
-  Customer's email address for notifications and receipts.
+<ParamField body="currency" type="string" required>
+  Three-letter ISO currency code. Supported currencies include:
+  - `XAF`: Central Africa (Cameroon, Gabon, Chad, CAR, Congo)
+  - `XOF`: West Africa (Côte d'Ivoire, Senegal, Benin, Burkina Faso, Mali, Togo)
+  - `GHS`: Ghana
+  - `KES`: Kenya
+  - `UGX`: Uganda
+  - `RWF`: Rwanda
 </ParamField>
 
 <ParamField body="phone" type="string" required>
-  Customer's phone number with country prefix (e.g., `237612345678`).
+  The customer's mobile money phone number formatted with international calling code (e.g., `+237671234567`, `+2250102030405`, `+254712345678`).
 </ParamField>
 
-#### Payment Details
-<ParamField body="amount" type="string" required>
-  Amount in smallest currency unit (e.g., "5000" for 5000 XAF).
+<ParamField body="customer_name" type="string">
+  The customer's full name (e.g., `"Amara Diallo"`). Automatically mapped to first and last names.
 </ParamField>
 
-<ParamField body="currency" type="string" default="XAF">
-  The currency code. Currently supports `XAF` (Cameroon, etc.) and `XOF` (Senegal, Ivory Coast, etc.).
-</ParamField>
-
-<ParamField body="country" type="string">
-  ISO 2-letter country code (e.g., `CM`, `CI`, `SN`, `GH`, `KE`). 
-  
-  **Recommended to omit**: If omitted, the system automatically detects the country based on the phone number prefix. Only provide if you want to enforce a specific country.
-</ParamField>
-
-<ParamField body="network" type="string">
-  Mobile network operator code. Common values: `MTN`, `ORANGE`, `AIRTEL`, `MPESA`, `VODAFONE`.
-  
-  **Recommended to omit**: If omitted, the system automatically detects the operator based on the phone number pattern.
+<ParamField body="customer_email" type="string">
+  The customer's email address for receipt dispatch.
 </ParamField>
 
 <ParamField body="description" type="string" required>
-  Brief description of the charge, displayed to the customer.
+  An arbitrary string describing the purchase displayed on statements and notifications.
 </ParamField>
 
-<ParamField body="merchant_reference" type="string" required>
-  Your unique order reference for internal tracking.
+<ParamField body="merchant_reference" type="string">
+  Unique order or invoice reference from your system. If omitted, Pursar generates a unique transaction reference automatically.
 </ParamField>
 
-#### Configuration
+<ParamField body="country" type="string">
+  Two-letter ISO 3166-1 alpha-2 country code (`CM`, `CI`, `SN`, `GH`, `KE`, etc.). 
+  
+  *Recommended to omit*: Pursar automatically detects the country from the phone number calling prefix.
+</ParamField>
+
+<ParamField body="network" type="string">
+  Mobile operator identifier (`MTN`, `ORANGE`, `MOOV`, `WAVE`, `MPESA`, `EXPRESS_UNION`).
+  
+  *Recommended to omit*: Pursar automatically identifies the telco network based on the cellular prefix.
+</ParamField>
+
 <ParamField body="fee_bearer" type="string" default="merchant">
-  Who pays the transaction fees:
-  - `merchant`: Commission is deducted from your balance.
-  - `customer`: Fee is added to the amount the customer pays.
-</ParamField>
-
-<ParamField body="redirect_url" type="string">
-  The URL to redirect the customer to after payment completion (if applicable).
+  Specifies who absorbs the transaction processing fee:
+  - `merchant`: Processing fees are deducted from the merchant payout balance.
+  - `customer`: Processing fees are added on top of the charged amount.
 </ParamField>
 
 <ParamField body="metadata" type="object">
-  Custom JSON object for storing your own data with this transaction.
+  Key-value pairs for storing custom data on the transaction.
 </ParamField>
 
-### Response
+---
 
-<ResponseField name="id" type="string">
-  Unique identifier for the transaction.
-</ResponseField>
+### Code Examples
 
-<ResponseField name="payment_ref" type="string">
-  PaveWay's unique public reference for this transaction (e.g., `PWG_...`).
-</ResponseField>
+<CodeGroup>
+```bash cURL (Stripe Standard Basic Auth)
+curl -X POST https://api.viarosandbox.com/v1/charges/mobile-money \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 25000,
+    "currency": "XAF",
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Invoice #104 Premium License"
+  }'
+```
 
-<ResponseField name="status" type="string">
-  Current status of the charge. Usually `pending` immediately after request, until the user processes the USSD prompt.
-</ResponseField>
+```python Python
+import requests
 
-<ResponseField name="amount" type="string">
-  The amount being charged.
-</ResponseField>
+url = "https://api.viarosandbox.com/v1/charges/mobile-money"
+api_key = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG"
 
-<ResponseField name="currency" type="string">
-  The currency code.
-</ResponseField>
+payload = {
+    "amount": 25000,
+    "currency": "XAF",
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Invoice #104 Premium License",
+    "metadata": {
+        "order_id": "ord_88291"
+    }
+}
 
-<ResponseField name="network" type="string">
-  The detected mobile network operator (e.g., `MTN`, `ORANGE`).
-</ResponseField>
+response = requests.post(url, auth=(api_key, ""), json=payload)
+data = response.json()
+print("Transaction ID:", data["data"]["id"])
+print("Status:", data["data"]["status"])
+```
 
-<ResponseField name="message" type="string">
-  A descriptive message for the user, usually instructing them to check their phone.
-</ResponseField>
+```javascript Node.js
+const apiKey = "sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG";
+
+const response = await fetch("https://api.viarosandbox.com/v1/charges/mobile-money", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${apiKey}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    amount: 25000,
+    currency: "XAF",
+    phone: "+237671234567",
+    customer_name: "Amara Diallo",
+    customer_email: "amara@example.com",
+    description: "Invoice #104 Premium License"
+  })
+});
+
+const charge = await response.json();
+console.log(charge.data);
+```
+</CodeGroup>
+
+---
+
+### Response Example
 
 <ResponseExample>
 ```json
@@ -108,14 +149,16 @@ Include your **Secret Key** in the `Authorization` header as a Bearer token.
   "status_code": 200,
   "response_type": "success",
   "data": {
-    "id": "658dc...",
-    "payment_ref": "PWG_abc123",
-    "status": "pending",
-    "amount": "5000",
+    "id": "edbe80e4-0018-4669-a232-edb278c38e95",
+    "payment_ref": "PWG_3748291039",
+    "merchant_reference": "ref_9381749",
+    "status": "requires_action",
+    "amount": "25000",
     "currency": "XAF",
-    "payment_method": "mobile_money_franco",
     "network": "MTN",
-    "message": "Payment processing. Please check your phone for the USSD prompt."
+    "fee": 500.0,
+    "fee_bearer": "merchant",
+    "message": "Payment prompt sent to customer phone. Awaiting customer PIN authorization."
   }
 }
 ```

@@ -1,0 +1,123 @@
+---
+title: "Webhook Endpoints"
+api: "POST /webhook_endpoints"
+description: "Register and manage HTTP endpoints to receive real-time webhook event notifications."
+---
+
+You can configure webhook endpoints via the API to be notified about events that happen in your Pursar account, such as successful mobile money charges, completed payouts, or updated customer identity sessions.
+
+---
+
+### Create a Webhook Endpoint
+
+<ParamField body="url" type="string" required>
+  The HTTPS URL where Pursar should deliver event payloads.
+</ParamField>
+
+<ParamField body="events" type="array" required>
+  The list of event types to subscribe to (e.g. `["charge.successful", "payment_intent.succeeded", "payout.paid"]`). Use `["*"]` to subscribe to all events.
+</ParamField>
+
+<ParamField body="description" type="string">
+  An optional description of what this endpoint is used for.
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/webhook_endpoints \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/api/webhooks/pursar",
+    "description": "Primary backend webhook listener",
+    "events": [
+      "charge.successful",
+      "payment_intent.succeeded",
+      "payout.paid"
+    ]
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/webhook_endpoints"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+payload = {
+    "url": "https://example.com/api/webhooks/pursar",
+    "description": "Primary backend webhook listener",
+    "events": ["charge.successful", "payment_intent.succeeded", "payout.paid"]
+}
+
+response = requests.post(url, auth=auth, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function createWebhookEndpoint() {
+  const response = await axios.post(
+    'https://api.viarosandbox.com/v1/webhook_endpoints',
+    {
+      url: 'https://example.com/api/webhooks/pursar',
+      description: 'Primary backend webhook listener',
+      events: ['charge.successful', 'payment_intent.succeeded', 'payout.paid']
+    },
+    {
+      auth: {
+        username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+        password: ''
+      }
+    }
+  );
+
+  console.log(response.data);
+}
+
+createWebhookEndpoint();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+<Note>
+  The `secret` field (`whsec_...`) is the endpoint's unique HMAC signing secret. Store it securely on your server to verify incoming webhook signatures.
+</Note>
+
+```json
+{
+  "id": "we_1a2b3c4d5e6f",
+  "object": "webhook_endpoint",
+  "url": "https://example.com/api/webhooks/pursar",
+  "description": "Primary backend webhook listener",
+  "status": "enabled",
+  "secret": "whsec_7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c",
+  "events": [
+    "charge.successful",
+    "payment_intent.succeeded",
+    "payout.paid"
+  ],
+  "created_at": "2026-11-06T12:00:00Z"
+}
+```
+
+---
+
+### List Webhook Endpoints
+
+`GET /webhook_endpoints`
+
+Returns a list of all configured webhook endpoints.
+
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/webhook_endpoints \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```

@@ -1,0 +1,142 @@
+---
+title: "Payment Links"
+api: "POST /payment_links"
+description: "Create, retrieve, and manage shareable payment links that customers can open anywhere to pay."
+---
+
+Payment Links allow you to generate shareable URLs that your customers can open on any browser, mobile phone, or messaging app (WhatsApp, Telegram, SMS) to pay you without writing code or building checkout pages.
+
+Pursar automatically serves a localized checkout experience supporting Mobile Money (MTN, Orange, Moov, Wave, M-Pesa), Cards, and Bank Transfer with full responsive design.
+
+---
+
+## Create a Payment Link
+
+<ParamField body="title" type="string" required>
+  The title of the payment link displayed to the customer (e.g., `"Pro Developer License"`).
+</ParamField>
+
+<ParamField body="amount" type="integer | string" required>
+  The amount to collect. Can be an integer or string.
+</ParamField>
+
+<ParamField body="currency" type="string" required>
+  Three-letter ISO currency code (`XAF`, `XOF`, `GHS`, `KES`, `UGX`, `RWF`, `USD`, `EUR`).
+</ParamField>
+
+<ParamField body="description" type="string">
+  Detailed explanation of what the customer is purchasing.
+</ParamField>
+
+<ParamField body="redirect_url" type="string">
+  URL to redirect the customer to after successful payment completion.
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Custom key-value pairs associated with the payment link.
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/payment_links \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Pro Plan Subscription Link",
+    "amount": 15000,
+    "currency": "XAF",
+    "description": "Hosted payment link for pro plan",
+    "redirect_url": "https://example.com/payment-success"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/payment_links"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+payload = {
+    "title": "Pro Plan Subscription Link",
+    "amount": 15000,
+    "currency": "XAF",
+    "description": "Hosted payment link for pro plan",
+    "redirect_url": "https://example.com/payment-success"
+}
+
+response = requests.post(url, auth=auth, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function createPaymentLink() {
+  const response = await axios.post(
+    'https://api.viarosandbox.com/v1/payment_links',
+    {
+      title: 'Pro Plan Subscription Link',
+      amount: 15000,
+      currency: 'XAF',
+      description: 'Hosted payment link for pro plan',
+      redirect_url: 'https://example.com/payment-success'
+    },
+    {
+      auth: {
+        username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+        password: ''
+      }
+    }
+  );
+  console.log(response.data);
+}
+
+createPaymentLink();
+```
+</CodeGroup>
+
+### Response
+
+```json
+{
+  "id": "pl_8f293b01ad7e",
+  "slug": "pl_8f293b01ad7e",
+  "url": "https://checkout.viarosandbox.com/pay/pl_8f293b01ad7e",
+  "title": "Pro Plan Subscription Link",
+  "description": "Hosted payment link for pro plan",
+  "amount": 15000,
+  "currency": "XAF",
+  "status": "active",
+  "redirect_url": "https://example.com/payment-success",
+  "created_at": "2026-11-06T12:00:00Z"
+}
+```
+
+---
+
+## List Payment Links
+
+Retrieve a list of all payment links created for your business.
+
+`GET /payment_links`
+
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/payment_links \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+---
+
+## Retrieve a Public Payment Link
+
+Retrieve public details of a payment link using its slug. This endpoint does not require authentication and is used by hosted checkout frontends.
+
+`GET /public/payment-links/{slug}`
+
+```bash cURL
+curl https://api.viarosandbox.com/v1/public/payment-links/pl_8f293b01ad7e
+```

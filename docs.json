@@ -1,16 +1,16 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "PaveWay Developer Portal",
+  "name": "Pursar Developer Portal",
   "colors": {
-    "primary": "#0164d5",
-    "light": "#02dcf9",
-    "dark": "#3730A3"
+    "primary": "#635BFF",
+    "light": "#7A73FF",
+    "dark": "#0A2540"
   },
   "favicon": "/favicon.svg",
   "api": {
     "mdx": {
-      "server": "https://paveway-gateway-adwfci84.uc.gateway.dev/v1",
+      "server": "https://api.viarosandbox.com/v1",
       "auth": {
         "method": "bearer"
       }
@@ -22,12 +22,12 @@
   "anchors": [
     {
       "anchor": "Sandbox (Test)",
-      "url": "https://paveway-gateway-adwfci84.uc.gateway.dev/v1",
+      "url": "https://api.viarosandbox.com/v1",
       "icon": "vial"
     },
     {
       "anchor": "Production (Live)",
-      "url": "https://api.pavewaygroup.com/v1",
+      "url": "https://api.pursar.com/v1",
       "icon": "rocket"
     }
   ],
@@ -37,29 +37,31 @@
         "tab": "Guides",
         "groups": [
           {
-            "group": "Introduction",
+            "group": "Getting Started",
             "pages": [
               "index",
-              "authentication"
+              "authentication",
+              "quickstart"
             ]
           },
           {
-            "group": "Payment Collection",
+            "group": "Payment Acceptance",
             "pages": [
               "guides/payments/overview",
               "guides/payments/web-integration",
               "guides/payments/mobile-integration",
-              "guides/payments/local-currency"
+              "guides/payments/local-currency",
+              "guides/payments/manual-payments"
             ]
           },
           {
-            "group": "Subscriptions",
+            "group": "Recurring & Subscriptions",
             "pages": [
               "guides/subscriptions/recurring-payments"
             ]
           },
           {
-            "group": "Advanced",
+            "group": "Enterprise & Reliability",
             "pages": [
               "guides/advanced/idempotency",
               "guides/advanced/fees",
@@ -73,33 +75,61 @@
         "tab": "API Reference",
         "groups": [
           {
+            "group": "Overview",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
             "group": "Payments API",
             "pages": [
               "api-reference/payments/create-intent",
+              "api-reference/payments/confirm-intent",
               "api-reference/payments/charge-money",
-              "api-reference/payments/status-check",
               "api-reference/payments/payment-methods",
               "api-reference/payments/get-transaction",
+              "api-reference/payments/list-transactions",
               "api-reference/payments/refunds"
+            ]
+          },
+          {
+            "group": "Checkout & Payment Links",
+            "pages": [
+              "api-reference/checkout/sessions",
+              "api-reference/checkout/payment-links"
             ]
           },
           {
             "group": "Customers",
             "pages": [
               "api-reference/customers/overview",
+              "api-reference/customers/create",
               "api-reference/customers/list",
               "api-reference/customers/get"
             ]
           },
           {
-            "group": "Sessions",
+            "group": "Balance & Ledger",
             "pages": [
-              "api-reference/sessions/create"
+              "api-reference/balance/get",
+              "api-reference/balance/wallets"
             ]
           },
           {
-            "group": "Subscriptions API",
+            "group": "Payouts & Settlement",
             "pages": [
+              "api-reference/payouts/overview",
+              "api-reference/payouts/methods",
+              "api-reference/payouts/create",
+              "api-reference/payouts/list"
+            ]
+          },
+          {
+            "group": "Invoices & Billing",
+            "pages": [
+              "api-reference/invoices/overview",
+              "api-reference/invoices/create",
+              "api-reference/invoices/list",
               "api-reference/subscriptions/overview",
               "api-reference/subscriptions/plans",
               "api-reference/subscriptions/create",
@@ -107,10 +137,31 @@
             ]
           },
           {
-            "group": "Financial Services API",
+            "group": "Products & Catalog",
             "pages": [
-              "api-reference/esim/list-plans",
-              "api-reference/esim/purchase"
+              "api-reference/products/list",
+              "api-reference/products/create"
+            ]
+          },
+          {
+            "group": "Developer Platform",
+            "pages": [
+              "api-reference/developer/api-keys",
+              "api-reference/developer/webhooks",
+              "api-reference/developer/events"
+            ]
+          },
+          {
+            "group": "Identity & KYB Compliance",
+            "pages": [
+              "api-reference/identity/compliance",
+              "api-reference/identity/verification"
+            ]
+          },
+          {
+            "group": "Reports & Analytics",
+            "pages": [
+              "api-reference/reports/overview"
             ]
           },
           {
@@ -130,9 +181,9 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/pavewaygroup",
-      "linkedin": "https://linkedin.com/company/pavewaygroup",
-      "github": "https://github.com/pavewaygroup"
+      "x": "https://x.com/pursarpay",
+      "linkedin": "https://linkedin.com/company/pursar",
+      "github": "https://github.com/pursar"
     }
   }
 }

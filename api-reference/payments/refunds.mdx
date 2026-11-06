@@ -1,69 +1,117 @@
 ---
-title: "Create Refund"
+title: "Refunds"
 api: "POST /refunds"
-description: "Issue a full or partial refund for a successful transaction."
+description: "Issue full or partial refunds for successful transactions and list historical refunds."
 ---
 
-### Authentication
-Include your **Secret Key** in the `Authorization` header as a Bearer token.
+When you want to return funds to a customer, you create a Refund. Refunds can be full or partial.
 
-### Request Body
+Funds are refunded directly back to the customer's original payment method (e.g. their MTN/Orange Mobile Money wallet or credit card).
+
+---
+
+## Create a Refund
 
 <ParamField body="transaction_id" type="string" required>
-  The ID of the original successful transaction.
+  The ID of the original successful transaction (`tx_...`).
 </ParamField>
 
-<ParamField body="amount" type="string">
-  Refund amount in smallest currency unit. If omitted, a full refund is issued.
+<ParamField body="amount" type="integer | string">
+  The amount to refund. If omitted, Pursar issues a full refund of the original transaction amount.
 </ParamField>
 
 <ParamField body="reason" type="string">
-  Code for the refund reason: `requested_by_customer`, `duplicate`, `fraudulent`, `other`.
+  String indicating the reason for the refund: `requested_by_customer`, `duplicate`, `fraudulent`, or `other`.
 </ParamField>
 
-<ParamField body="notes" type="string">
-  Additional context for the refund (up to 500 characters).
+<ParamField body="metadata" type="object">
+  Key-value pairs for internal customer service or ticketing reference.
 </ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/refunds \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "transaction_id": "tx_4a1b2c3d4e5f",
+    "amount": 10000,
+    "reason": "requested_by_customer"
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/refunds"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+payload = {
+    "transaction_id": "tx_4a1b2c3d4e5f",
+    "amount": 10000,
+    "reason": "requested_by_customer"
+}
+
+response = requests.post(url, auth=auth, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function createRefund() {
+  const response = await axios.post(
+    'https://api.viarosandbox.com/v1/refunds',
+    {
+      transaction_id: 'tx_4a1b2c3d4e5f',
+      amount: 10000,
+      reason: 'requested_by_customer'
+    },
+    {
+      auth: {
+        username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+        password: ''
+      }
+    }
+  );
+
+  console.log(response.data);
+}
+
+createRefund();
+```
+</CodeGroup>
+
+---
 
 ### Response
 
-<ResponseField name="id" type="string">
-  Unique identifier for the transaction/refund wrapper.
-</ResponseField>
-
-<ResponseField name="refund_id" type="string">
-  The specific ID of the refund (e.g., `rf_...`).
-</ResponseField>
-
-<ResponseField name="amount" type="string">
-  The amount refunded.
-</ResponseField>
-
-<ResponseField name="currency" type="string">
-  The currency code.
-</ResponseField>
-
-<ResponseField name="status" type="string">
-  Status of the refund (`succeeded`, `pending`, `failed`).
-</ResponseField>
-
-<ResponseField name="reason" type="string">
-  Reason for the refund.
-</ResponseField>
-
-<ResponseExample>
 ```json
 {
-  "status_code": 200,
-  "response_type": "success",
-  "data": {
-    "id": "658dc...",
-    "refund_id": "rf_abc123...",
-    "amount": "1000",
-    "currency": "XAF",
-    "status": "succeeded",
-    "reason": "requested_by_customer"
-  }
+  "id": "re_8a9b0c1d2e3f",
+  "object": "refund",
+  "amount": 10000,
+  "currency": "XAF",
+  "status": "succeeded",
+  "transaction": "tx_4a1b2c3d4e5f",
+  "reason": "requested_by_customer",
+  "created_at": "2026-11-06T12:00:00Z"
 }
 ```
-</ResponseExample>
+
+---
+
+## List Refunds
+
+`GET /refunds`
+
+Returns a paginated list of all refunds issued by your account.
+
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/refunds \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```

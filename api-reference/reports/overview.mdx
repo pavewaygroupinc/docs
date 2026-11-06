@@ -1,0 +1,85 @@
+---
+title: "Reports & Financial Reconciliation"
+api: "GET /reports"
+description: "Generate and download automated financial reconciliation, settlement, and fee breakdown reports."
+---
+
+Pursar Reporting provides downloadable, audit-ready financial statements for accounting reconciliation, tax filing, and auditing.
+
+Reports can be exported in CSV and JSON formats, with line-item breakdowns of:
+- Gross payment volumes
+- Telco aggregator and card interchange fees
+- Net settled amounts
+- Refund deductions and chargebacks
+- Exchange rate details on cross-border transactions
+
+---
+
+### List Generated Reports
+
+`GET /reports`
+
+Returns a list of financial reports generated for your business.
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -G https://api.viarosandbox.com/v1/reports \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/reports"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+response = requests.get(url, auth=auth)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function listReports() {
+  const response = await axios.get('https://api.viarosandbox.com/v1/reports', {
+    auth: {
+      username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+      password: ''
+    }
+  });
+
+  console.log(response.data);
+}
+
+listReports();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "rep_fin_20261101",
+      "object": "report",
+      "type": "balance_change_from_activity.summary",
+      "status": "ready",
+      "currency": "XAF",
+      "total_gross_amount": 14500000,
+      "total_fees_amount": 290000,
+      "total_net_amount": 14210000,
+      "period_start": "2026-11-01T00:00:00Z",
+      "period_end": "2026-11-06T23:59:59Z",
+      "download_url": "https://reports.viarosandbox.com/export/rep_fin_20261101.csv",
+      "created_at": "2026-11-06T12:00:00Z"
+    }
+  ],
+  "has_more": false
+}
+```

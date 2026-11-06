@@ -1,0 +1,100 @@
+---
+title: "Create a Product"
+api: "POST /products"
+description: "Create a new product in your business catalog."
+---
+
+Creates a new product object. Products can be linked to prices, payment links, and subscription tiers.
+
+---
+
+### Request Body
+
+<ParamField body="name" type="string" required>
+  The product's name, meant to be displayable to the customer.
+</ParamField>
+
+<ParamField body="description" type="string">
+  The product's description, meant to be displayable to the customer.
+</ParamField>
+
+<ParamField body="active" type="boolean" default="true">
+  Whether the product is currently available for purchase.
+</ParamField>
+
+<ParamField body="metadata" type="object">
+  Key-value pairs for internal SKU or inventory tracking.
+</ParamField>
+
+---
+
+### Code Examples
+
+<CodeGroup>
+```bash cURL
+curl -X POST https://api.viarosandbox.com/v1/products \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Standard Developer Plan",
+    "description": "Monthly recurring developer license",
+    "active": true
+  }'
+```
+
+```python Python
+import requests
+
+url = "https://api.viarosandbox.com/v1/products"
+auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
+
+payload = {
+    "name": "Standard Developer Plan",
+    "description": "Monthly recurring developer license",
+    "active": True
+}
+
+response = requests.post(url, auth=auth, json=payload)
+print(response.json())
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+async function createProduct() {
+  const response = await axios.post(
+    'https://api.viarosandbox.com/v1/products',
+    {
+      name: 'Standard Developer Plan',
+      description: 'Monthly recurring developer license',
+      active: true
+    },
+    {
+      auth: {
+        username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
+        password: ''
+      }
+    }
+  );
+
+  console.log(response.data);
+}
+
+createProduct();
+```
+</CodeGroup>
+
+---
+
+### Response
+
+```json
+{
+  "id": "prod_3a4b5c6d7e",
+  "object": "product",
+  "name": "Standard Developer Plan",
+  "description": "Monthly recurring developer license",
+  "active": true,
+  "created_at": "2026-11-06T12:00:00Z"
+}
+```
