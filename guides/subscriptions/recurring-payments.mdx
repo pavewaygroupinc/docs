@@ -1,61 +1,97 @@
 ---
-title: "Recurring Payments"
-description: "Implement subscriptions and recurring billing in your application."
+title: "Recurring Payments & Subscriptions"
+description: "Implement automated recurring billing for cards and scheduled mobile money payment prompts with Pursar Billing."
 ---
 
-PaveWay's subscription engine allows you to automate billing for your customers. This guide covers how to set up recurring payments using both Mobile Money and Cards.
-
-## How it Works
-
-1.  **Define a Plan**: Create a plan that defines the price, currency, and billing interval (daily, weekly, monthly).
-2.  **Choose a Payment Method**:
-    - **Card**: Uses a saved token from a previous payment to charge the customer automatically.
-    - **Mobile Money**: Sends a USSD prompt to the customer's phone at a **Preferred Time** (e.g., 6 PM daily).
-3.  **Subscribe the Customer**: Create a subscription object linking the customer to the plan.
-4.  **Automatic Invoicing**: PaveWay generates invoices and attempts collection automatically according to the cycle.
+Pursar Billing enables SaaS platforms, digital content creators, utility providers, and membership communities to bill customers automatically on recurring cycles (daily, weekly, monthly, or yearly) across both saved credit cards and scheduled Mobile Money prompts.
 
 ---
 
-## Integration Steps
+## Subscription Lifecycle
 
-### 1. Create a Subscription Plan
-Use the [Plans API](/api-reference/subscriptions/plans) to define your tiers.
+```mermaid
+stateDiagram-v2
+    [*] --> Incomplete: Create Subscription
+    Incomplete --> Active: Initial Payment Succeeded
+    Incomplete --> Canceled: Initial Payment Failed
+    Active --> PastDue: Invoice Collection Failed
+    PastDue --> Active: Retry / Fallback Payment Succeeded
+    PastDue --> Canceled: Dunning Max Retries Exceeded
+    Active --> Paused: Merchant Pauses Billing
+    Paused --> Active: Merchant Resumes Billing
+    Active --> Canceled: Customer or Merchant Cancels
+```
+
+---
+
+## 1. Create a Product & Price Plan
+
+Before subscribing customers, create a Product with a recurring Price plan:
 
 ```bash
-POST /v1/subscriptions/plans
-{
-  "name": "Standard Monthly",
-  "code": "std-mth",
-  "amount": 5000,
-  "billing_cycle": "monthly"
-}
+curl -X POST https://api.viarosandbox.com/v1/products \
+  -u sk_test_live_secret_key_12345: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pursar Pro Subscription",
+    "description": "Unlimited team access and automated reporting",
+    "price": 10000,
+    "currency": "XAF",
+    "interval": "month"
+  }'
 ```
-
-### 2. Set Up the Primary Payment Method
-
-#### Card Subscriptions
-To use card-based auto-pay, you must first have a saved `card_token` from a successful [PaymentIntent](/api-reference/payments/create-intent) where `setup_future_usage` was enabled.
-
-#### Mobile Money Subscriptions
-Mobile money subscriptions don't require pre-authorization. You just need the customer's phone number and their preferred window for receiving payment prompts.
-
-```json
-"preferred_time": {
-  "hour": 18,
-  "minute": 0,
-  "timezone": "Africa/Douala"
-}
-```
-
-### 3. Handle Ongoing Subscriptions
-Use [Webhooks](/api-reference/webhooks/overview) to listen for `invoice.paid` or `subscription.canceled` events. 
-
-> [!TIP]
-> Always configure a **Fallback Payment Method**. If a mobile money prompt fails (e.g., customer has no funds), PaveWay can automatically attempt to charge a secondary card if defined.
 
 ---
 
-## Managing Lifecycle
-- **Pausing**: Stop billing temporarily (e.g., during a service outage).
-- **Grace Periods**: Configured in your dashboard to allow retries before cancellation.
-- **Upgrades/Downgrades**: Update the `plan_id` on the subscription object.
+## 2. Subscribe a Customer
+
+Attach an existing Customer (`cus_...`) to the recurring plan:
+
+```bash
+curl -X POST https://api.viarosandbox.com/v1/subscriptions \
+  -u sk_test_live_secret_key_12345: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_id": "cus_0192384a_1234",
+    "plan_id": "plan_pro_monthly",
+    "payment_method": "mobile_money",
+    "mobile_money": {
+      "phone": "+237671234567",
+      "network": "MTN"
+    },
+    "preferred_time": {
+      "hour": 18,
+      "minute": 0,
+      "timezone": "Africa/Douala"
+    },
+    "fee_bearer": "merchant"
+  }'
+```
+
+### Response
+
+```json
+{
+  "id": "sub_019318b2_8291",
+  "status": "active",
+  "customer_id": "cus_0192384a_1234",
+  "plan_id": "plan_pro_monthly",
+  "amount": 10000,
+  "currency": "XAF",
+  "current_period_start": "2026-11-06T12:00:00.000Z",
+  "current_period_end": "2026-12-06T12:00:00.000Z",
+  "cancel_at_period_end": false
+}
+```
+
+---
+
+## 3. Webhook Fulfillment for Recurring Invoices
+
+Listen for subscription lifecycle events on your webhook endpoint:
+
+| Event Type | Trigger Condition | Action Required |
+| :--- | :--- | :--- |
+| `invoice.paid` | Recurring cycle billing succeeded. | Extend customer service period or grant subscription entitlement. |
+| `invoice.payment_failed` | USSD prompt timed out, customer declined, or card had insufficient funds. | Send payment reminder notification; enter grace period. |
+| `customer.subscription.canceled` | Customer canceled or dunning retries exhausted. | Revoke access at period end. |

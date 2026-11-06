@@ -3,7 +3,7 @@ title: "Signature Verification"
 description: "Verify that incoming webhook events are authentic, untampered, and sent directly by Pursar."
 ---
 
-Pursar signs every webhook event using an HMAC-SHA256 signature scheme benchmarked against Stripe's webhook security standards. Webhook deliveries include the signature in the `X-Pursar-Signature` header (with `Paveway-Signature` and `Stripe-Signature` available for backward compatibility).
+Pursar signs every webhook event using an HMAC-SHA256 signature scheme benchmarked against Stripe's webhook security standards. Webhook deliveries include the signature in the `X-Pursar-Signature` header (with `Stripe-Signature` supported as a fallback).
 
 You must verify this signature to prevent unauthorized actors from spoofing payment notifications and to prevent replay attacks.
 
@@ -11,7 +11,7 @@ You must verify this signature to prevent unauthorized actors from spoofing paym
 
 The signature header contains a unix timestamp and one or more signatures:
 
-- **Header**: `X-Pursar-Signature` (also sent as `Paveway-Signature` and `Stripe-Signature`)
+- **Header**: `X-Pursar-Signature` (or `Stripe-Signature`)
 - **Format**: `t=<timestamp>,v1=<signature_hex>`
 - **Signed Payload**: `<timestamp>.<raw_request_body>`
 - **Algorithm**: HMAC with SHA-256 using your endpoint's signing secret (`whsec_...`).

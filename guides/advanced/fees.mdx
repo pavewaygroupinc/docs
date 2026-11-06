@@ -1,46 +1,54 @@
 ---
-title: "Fees & Quotes"
-description: "Understand PaveWay's transparent fee structure and tax handling."
+title: "Fees & Pricing Structure"
+description: "Understand Pursar's transparent fee engine, fee bearer rules, and real-time fee quote calculations."
 ---
 
-PaveWay provides a transparent fee engine that calculates costs in real-time based on the payment method, customer location, and merchant configuration.
+Pursar operates an ultra-transparent pricing engine with zero hidden setup costs, monthly maintenance fees, or foreign exchange surcharges. You can configure whether fees are absorbed by your business or passed to your customer on a per-transaction basis.
 
-## Fee Types
+---
 
-| Fee Type | Description | Standard Rate |
+## Standard Processing Fees
+
+| Payment Method | Geographic Rail | Fee Structure |
 | :--- | :--- | :--- |
-| **Platform Fee** | PaveWay's processing fee. | 1.0% |
-| **Provider Fee** | Passthrough cost from the gateway (Stripe, Flutterwave, etc.). | Varies by country (1.4% - 4.8%) |
-| **Fixed Fee** | A flat cost per transaction. | 50 XAF (Local MM) / $0.30 (Intl Cards) |
+| **Mobile Money (Local)** | Cameroon (XAF), Côte d'Ivoire (XOF), Senegal (XOF) | **1.0% + 50 XAF** |
+| **Mobile Money (East Africa)** | Kenya (KES), Uganda (UGX), Rwanda (RWF) | **1.2% + local flat fee** |
+| **Local African Cards** | CEMAC, UEMOA, Nigeria (NGN), Ghana (GHS) | **1.5%** |
+| **International Cards** | Global Visa, Mastercard, American Express | **2.9% + $0.30 USD** |
+| **PayPal** | Global | **3.9% + $0.30 USD** |
+| **Manual USSD** | Automated SMS Reconciled Transfers | **0.8%** |
+
+---
 
 ## Fee Bearer Configuration
 
-You can control who pays the transaction fees using the `fee_bearer` parameter at [PaymentIntent creation](/api-reference/payments/create-intent).
+Every charge and Checkout Session supports the `fee_bearer` parameter:
 
-- **`merchant`**: Fees are deducted from your final payout. The customer pays exactly the amount you specify.
-- **`customer`** (Default): Fees are added to the transaction amount. The customer sees a slightly higher total at checkout, but you receive the full requested amount.
+| `fee_bearer` | Mechanism | Best For |
+| :--- | :--- | :--- |
+| **`merchant`** (Default) | Transaction fees are deducted from your gross payout. Your customer pays exactly the advertised price (e.g. customer pays 25,000 XAF; merchant receives 24,700 XAF net). | Premium e-commerce, SaaS, retail where round pricing builds trust. |
+| **`customer`** | Processing fees are added on top of your base price at checkout. The customer pays the fee; your business receives 100% of the requested amount (e.g. customer pays 25,300 XAF; merchant receives 25,000 XAF net). | Invoices, B2B wholesale, utility bills, school tuition. |
 
-## Fetching a Quote
-
-You can retrieve a real-time fee breakdown before charging the customer.
+### Example Request Setting Fee Bearer
 
 ```bash
-GET /v1/payment-methods/fee/{payment_method}/{currency}/{amount}
-```
-
-### Response Example
-
-```json
-{
-  "status": "success",
-  "data": {
-    "amount": 10000,
+curl -X POST https://api.viarosandbox.com/v1/charges/mobile-money \
+  -u sk_test_live_secret_key_12345: \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 25000,
     "currency": "XAF",
-    "fee": 350,
-    "total_payable": 10350
-  }
-}
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Tuition Payment",
+    "merchant_reference": "TUI_104",
+    "fee_bearer": "customer"
+  }'
 ```
 
-> [!NOTE]
-> For high-volume merchants, the **Platform Fee** is reduced to **0.5%**. Contact your account manager for tiered pricing.
+---
+
+## High-Volume Custom Pricing
+
+Businesses processing more than **50,000,000 XAF** (or equivalent) monthly qualify for tiered interchange pricing, dedicated account management, and custom settlement schedules. Contact `sales@pursar.com` to enable custom platform rates.

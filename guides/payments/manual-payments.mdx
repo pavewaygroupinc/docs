@@ -5,7 +5,7 @@ description: "Accept manual USSD mobile money transfers with automated SMS recon
 
 In many African markets (such as Cameroon, Côte d'Ivoire, and Senegal), automated STK push / USSD prompt delivery from telecom operators can occasionally experience network congestion or operator downtime. 
 
-To guarantee 100% checkout completion, PaveWay provides a **Manual USSD Payment & Auto-Reconciliation Engine**. Customers can dial the standard telecom merchant USSD code directly from their phone, and PaveWay will automatically reconcile the transaction using incoming confirmation SMS messages.
+To guarantee 100% checkout completion, Pursar provides a **Manual USSD Payment & Auto-Reconciliation Engine**. Customers can dial the standard telecom merchant USSD code directly from their phone, and Pursar will automatically reconcile the transaction using incoming confirmation SMS messages.
 
 ---
 
@@ -13,41 +13,44 @@ To guarantee 100% checkout completion, PaveWay provides a **Manual USSD Payment 
 
 ```mermaid
 sequenceDiagram
-    participant C as Customer
-    participant CH as PaveWay Checkout
+    autonumber
+    actor Customer as Customer
+    participant Checkout as Pursar Hosted Checkout
     participant Telco as MTN / Orange Network
-    participant D as SMS Daemon Listener
-    participant P as PaveWay Payment Engine
-    participant M as Merchant Webhook
+    participant Daemon as SMS Daemon Listener
+    participant Pursar as Pursar Payment Engine
+    participant Merchant as Merchant Webhook
 
-    C->>CH: Selects "Manual USSD"
-    CH-->>C: Displays USSD code (*126*4*...#)
-    C->>Telco: Dials USSD code & authorizes PIN
-    Telco-->>C: SMS with Transaction ID (e.g. MP260908.1234.A12345)
-    Telco-->>D: Inbound SMS delivered to listener phone
-    D->>P: POST /gateway/ussd-sms/inbound (raw SMS)
-    P->>P: Regex parse + match against pending orders
+    Customer->>Checkout: Selects "Manual USSD"
+    Checkout-->>Customer: Displays USSD code (*126*4*...#) & Merchant Code
+    Customer->>Telco: Dials USSD code & authorizes PIN
+    Telco-->>Customer: SMS with Transaction ID (e.g. MP260908.1234.A12345)
+    Telco-->>Daemon: Inbound SMS delivered to merchant listener phone
+    Daemon->>Pursar: POST /v1/ussd-sms/inbound (raw SMS + HMAC)
+    Pursar->>Pursar: Regex parse + match against pending orders
     alt Customer submits TxID on checkout
-        C->>CH: Enters TxID on screen
-        CH->>P: POST /public/payment-intents/{id}/reconcile-manual
-        P-->>CH: Payment Succeeded!
+        Customer->>Checkout: Enters TxID on screen
+        Checkout->>Pursar: POST /public/payment_intents/{id}/reconcile-manual
+        Pursar-->>Checkout: Payment Succeeded!
     else Daemon ingests SMS first
-        P->>P: Matches & marks Succeeded
-        CH->>P: Polling receives "succeeded"
+        Pursar->>Pursar: Matches & marks Succeeded
+        Checkout->>Pursar: Polling receives "succeeded"
     end
-    P->>M: Dispatches payment.confirmed webhook
+    Pursar->>Merchant: Dispatches payment.succeeded webhook
 ```
 
 ---
 
 ## 1. Dial Codes & Operator Formatting
 
-When a customer selects **Manual USSD** on your checkout, PaveWay generates a dynamic USSD code formatted with the merchant code and transaction amount:
+When a customer selects **Manual USSD** on your checkout, Pursar generates a dynamic USSD code formatted with your merchant code and transaction amount:
 
 | Operator | Dial Code Format | Example (Amount: 5,000 XAF) |
 | :--- | :--- | :--- |
-| **MTN MoMo** | `*126*4*{merchant_code}*{amount}#` | `*126*4*670000000*5000#` |
-| **Orange Money** | `#150*4*1*{merchant_code}*{amount}#` | `#150*4*1*123456*5000#` |
+| **MTN MoMo (Cameroon)** | `*126*4*{merchant_code}*{amount}#` | `*126*4*670000000*5000#` |
+| **Orange Money (Cameroon)** | `#150*4*1*{merchant_code}*{amount}#` | `#150*4*1*123456*5000#` |
+| **MTN MoMo (Côte d'Ivoire)** | `*133*1*{merchant_code}*{amount}#` | `*133*1*0102030405*5000#` |
+| **Orange Money (Côte d'Ivoire)** | `#144*2*1*{merchant_code}*{amount}#` | `#144*2*1*0708091011*5000#` |
 
 Customers on mobile browsers can tap the **"Tap to dial"** button on the checkout screen to open their phone dialer pre-filled with the USSD code.
 
@@ -55,13 +58,13 @@ Customers on mobile browsers can tap the **"Tap to dial"** button on the checkou
 
 ## 2. Inbound SMS Auto-Reconciliation API
 
-If your organization deploys dedicated Android devices (running Android 4.4+ or specialized background daemon apps with SMS permissions), incoming SMS notifications from MTN or Orange can be forwarded automatically to PaveWay for real-time order matching.
+If your organization deploys dedicated Android devices (running Android 4.4+ or specialized background daemon apps with SMS permissions), incoming SMS notifications from MTN or Orange can be forwarded automatically to Pursar for real-time order matching.
 
 ### Endpoint
 
 ```http
-POST /v1/ussd-sms/inbound
-Authorization: Bearer sec_key_...
+POST https://api.viarosandbox.com/v1/ussd-sms/inbound
+Authorization: Bearer sk_test_...
 Content-Type: application/json
 ```
 
@@ -69,7 +72,7 @@ Content-Type: application/json
 
 ```json
 {
-  "raw_sms": "Paiement de 5000 FCFA a PAVEL GROUP reussi. Ref: MP260908.1402.A98765. Nouveau solde: 142000 FCFA.",
+  "raw_sms": "Paiement de 5000 FCFA a PURSAR MERCHANT reussi. Ref: MP260908.1402.A98765. Nouveau solde: 142000 FCFA.",
   "network": "MTN",
   "sender_phone": "+237671234567"
 }
@@ -83,7 +86,7 @@ Content-Type: application/json
   "message": "USSD transaction automatically reconciled",
   "data": {
     "reconciled": true,
-    "payment_ref": "PWG_TXN_987654",
+    "payment_ref": "PUR_TXN_987654",
     "transaction_hash": "MP260908.1402.A98765",
     "amount": 5000
   }
@@ -101,7 +104,7 @@ If the customer is completing checkout on the web, they can submit their Transac
 ### Endpoint
 
 ```http
-POST /public/payment-intents/{id}/reconcile-manual
+POST https://api.viarosandbox.com/v1/public/payment_intents/{id}/reconcile-manual
 Content-Type: application/json
 ```
 
@@ -121,11 +124,11 @@ Content-Type: application/json
 {
   "status": "success",
   "data": {
-    "id": "658dc...",
+    "id": "tx_658dc9182374b",
     "status": "succeeded",
-    "amount": "5000",
+    "amount": 5000,
     "currency": "XAF",
-    "payment_ref": "PWG_TXN_987654",
+    "payment_ref": "PUR_TXN_987654",
     "metadata": {
       "reconciled_via": "ussd_sms_buffer",
       "reconciliation_hash": "MP260908.1402.A98765"
@@ -138,14 +141,14 @@ Content-Type: application/json
 
 ## 4. Double-Spend & Fraud Prevention
 
-PaveWay guarantees bank-grade security for manual USSD payments:
+Pursar guarantees bank-grade security for manual USSD payments:
 
-- **Strict Uniqueness**: Every transaction reference code / hash is stored and checked. If an already-claimed code is reused, PaveWay immediately responds with `409 Conflict`:
+- **Strict Uniqueness**: Every transaction reference code / hash is stored and checked. If an already-claimed code is reused, Pursar immediately responds with `409 Conflict`:
   ```json
   {
     "status_code": 409,
     "message": "This transaction hash reference has already been claimed or reconciled"
   }
   ```
-- **Amount Tolerances**: When matching buffered receipts against PaymentIntents, the amount must match exactly (tolerance \(\le 0.01\)).
+- **Amount Tolerances**: When matching buffered receipts against pending charges, the amount must match exactly (tolerance \(\le 0.01\)).
 - **Time Limits**: Receipts expire after 2 hours if left unclaimed to prevent historical reuse.

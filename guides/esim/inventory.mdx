@@ -1,52 +1,51 @@
 ---
 title: "eSIM Inventory"
-description: "Browsing available eSIM packages for reselling."
+description: "Browse and query global and regional cellular data eSIM packages for reselling."
 ---
 
-The PaveWay eSIM API allows you to browse hundreds of data plans across the globe. You can filter by country, continent, or search for global plans that work everywhere.
+The Pursar eSIM API allows travel platforms, airlines, and fintech apps to query and resell global high-speed cellular data packages across 140+ countries.
+
+---
 
 ## Browsing Packages
 
 ### 1. By Country
-To see eSIMs available in a specific country, first fetch the list of supported countries.
+Fetch available cellular packages for a specific ISO country code:
 
 ```bash
-# Get all supported countries
-curl https://api.pavewaygroup.com/v1/esim/countries \
-  -H "Authorization: Bearer sk_test_..."
+curl -X GET https://api.viarosandbox.com/v1/esim/countries/CM/packages \
+  -u sk_test_live_secret_key_12345:
 ```
 
-Then, query the packages for a given country code:
+### 2. By Region / Continent
+Query regional packages that cover multiple countries (e.g., Africa, Europe, North America):
 
 ```bash
-# Get packages for Cameroon (CM)
-curl https://api.pavewaygroup.com/v1/esim/countries/CM/packages \
-  -H "Authorization: Bearer sk_test_..."
+curl -X GET https://api.viarosandbox.com/v1/esim/continents/africa/packages \
+  -u sk_test_live_secret_key_12345:
 ```
 
-### 2. By Continent
-If you want to offer regional plans (e.g., "All Africa" or "Europe"), you can browse by continent.
+### 3. Global Packages
+List global data plans that roam seamlessly across 100+ countries:
 
 ```bash
-# Get packages for Africa
-curl https://api.pavewaygroup.com/v1/esim/continents/africa/packages \
-  -H "Authorization: Bearer sk_test_..."
+curl -X GET https://api.viarosandbox.com/v1/esim/global \
+  -u sk_test_live_secret_key_12345:
 ```
 
-### 3. Global Plans
-PaveWay also offers global eSIMs that work in 100+ countries.
+---
 
-```bash
-# List all global packages
-curl https://api.pavewaygroup.com/v1/esim/global \
-  -H "Authorization: Bearer sk_test_..."
+## Package Response Object
+
+```json
+{
+  "id": "pkg_world_5gb_30d",
+  "name": "Global Explorer 5GB",
+  "data_limit_mb": 5120,
+  "validity_days": 30,
+  "price": 12500,
+  "currency": "XAF",
+  "coverage_countries": ["CM", "CI", "SN", "GH", "NG", "KE", "FR", "US"],
+  "status": "available"
+}
 ```
-
-## Package Details
-
-Each package object contains:
-- `id`: Unique identifier for the plan.
-- `data_limit`: Amount of data (e.g., 1GB, 5GB).
-- `validity`: Duration (e.g., 7 days, 30 days).
-- `price`: Cost in your base currency.
-- `coverage`: List of countries where it works.

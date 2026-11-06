@@ -7,7 +7,7 @@ description: "Start a recurring billing relationship with a customer."
 ### Request Body
 
 <ParamField body="customer_id" type="string" required>
-  The PaveWay ID of the customer (`cus_...`).
+  The Pursar ID of the customer (`cus_...`).
 </ParamField>
 
 <ParamField body="plan_id" type="string" required>
@@ -41,7 +41,7 @@ description: "Start a recurring billing relationship with a customer."
 </ParamField>
 
 <ParamField body="is_internal" type="boolean" default="false">
-  Flag to indicate if the business is an internal PaveWay application. If true, the platform fee is reduced to 0.5%.
+  Flag to indicate if the business is an internal Pursar application. If true, the platform fee is reduced to 0.5%.
 </ParamField>
 
 ### Response

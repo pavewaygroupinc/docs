@@ -1,19 +1,275 @@
 ---
 title: "Mobile Integration"
-description: "Accept payments in your iOS or Android applications."
+description: "Accept Mobile Money, Cards, and Wallets in your iOS, Android, Flutter, and React Native applications."
 ---
 
-PaveWay supports mobile integrations via direct API calls or our specialized mobile SDKs.
+Pursar supports mobile integrations via three battle-tested architectural patterns designed for mobile network reliability, telecom USSD prompts, and native app UX.
 
-## Direct API (Custom UI)
+```mermaid
+graph TD
+    A[Mobile Payment Integration] --> B[1. Direct Mobile Money (Native UI)]
+    A --> C[2. Hosted Checkout (In-App WebView / Custom Tabs)]
+    A --> D[3. Client-Side PaymentIntents (SDK)]
 
-If you prefer to build your own UI, you can confirm payments directly from your backend after collecting the user's mobile money number or high-level transaction intent.
+    B --> B1["Custom input in native app<br/>Server triggers POST /v1/charges/mobile-money<br/>User receives native OS USSD STK push prompt"]
+    C --> C1["Server creates Checkout Session<br/>App opens Chrome Custom Tabs / SFSafariViewController<br/>Deep links back to myapp://checkout/success"]
+    D --> D1["Server creates PaymentIntent with client_secret<br/>Mobile SDK confirms intent without exposing Secret Key"]
+```
 
-## SDK Support
+---
 
-We offer official SDKs for:
-- **Flutter** (Active Development)
-- **React Native** (Coming Soon)
-- **Native Android/iOS** (Coming Soon)
+## Pattern 1: Direct Mobile Money (Native In-App UI)
 
-Please contact your account manager for early access to the Flutter SDK.
+This is the most common pattern for African consumer mobile apps (e.g. ride-hailing, food delivery, utility bill pay). The customer enters their mobile money phone number inside your native app interface, and your backend initiates the charge.
+
+### Flow Overview
+
+1. The customer enters their phone number in your mobile app UI (e.g., `+237 671 23 45 67`).
+2. Your mobile app sends the payment request to **your backend server**.
+3. Your backend server calls Pursar's Direct Mobile Money API:
+   ```http
+   POST https://api.viarosandbox.com/v1/charges/mobile-money
+   Authorization: Basic base64(sk_test_...:)
+   ```
+4. Pursar automatically dispatches an **STK Push / USSD Prompt** to the customer's phone through the telecom network (MTN, Orange, Moov, Airtel, M-Pesa).
+5. The customer's mobile OS displays the carrier PIN authorization overlay.
+6. The customer enters their PIN.
+7. Pursar confirms the charge and sends a webhook to your server; your app polls or receives a push notification confirming the order.
+
+### Backend Server Endpoint Example (Node.js)
+
+```javascript
+app.post('/api/app/charge-momo', async (req, res) => {
+  const { amount, phone, customerName, customerEmail, orderId } = req.body;
+
+  try {
+    const response = await axios.post(
+      'https://api.viarosandbox.com/v1/charges/mobile-money',
+      {
+        amount,
+        currency: 'XAF',
+        phone,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        description: `Order #${orderId}`,
+        merchant_reference: orderId,
+        fee_bearer: 'merchant'
+      },
+      {
+        auth: { username: process.env.PURSAR_SECRET_KEY, password: '' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': crypto.randomUUID()
+        }
+      }
+    );
+
+    res.json(response.data);
+  } catch (err) {
+    res.status(err.response?.status || 500).json(err.response?.data || { error: err.message });
+  }
+});
+```
+
+---
+
+## Pattern 2: Hosted Checkout via In-App Browser (Deep Linking)
+
+If you want to offer all payment methods (Cards with 3D Secure, PayPal, and all regional Mobile Money providers) without building custom UI for each, use Pursar Hosted Checkout within **Chrome Custom Tabs** (Android) or **SFSafariViewController / ASWebAuthenticationSession** (iOS).
+
+### Deep Link Setup
+
+1. Configure a custom URL scheme in your mobile app (e.g., `myapp://checkout/success` and `myapp://checkout/canceled`).
+2. When creating the Checkout Session on your server, provide your deep link URLs:
+
+```json
+{
+  "amount": 15000,
+  "currency": "XAF",
+  "customer_name": "Fatou Camara",
+  "customer_email": "fatou@example.com",
+  "description": "Mobile Subscription Top-up",
+  "merchant_reference": "MOB_ORD_5521",
+  "payment_method_types": ["mobile_money", "card", "paypal"],
+  "success_url": "myapp://checkout/success?session_id={CHECKOUT_SESSION_ID}",
+  "cancel_url": "myapp://checkout/canceled"
+}
+```
+
+3. When the customer completes payment, the in-app browser automatically hands control back to your app with the `session_id`.
+
+---
+
+## Flutter Integration Example
+
+Here is a complete Flutter implementation showing how to launch Checkout and handle deep link returns:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:app_links/app_links.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class PursarPaymentScreen extends StatefulWidget {
+  final int amount;
+  final String orderId;
+
+  const PursarPaymentScreen({Key? key, required this.amount, required this.orderId})
+      : super(key: key);
+
+  @override
+  _PursarPaymentScreenState createState() => _PursarPaymentScreenState();
+}
+
+class _PursarPaymentScreenState extends State<PursarPaymentScreen> {
+  late AppLinks _appLinks;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  void _initDeepLinks() {
+    _appLinks = AppLinks();
+    _appLinks.uriLinkStream.listen((uri) {
+      if (uri.scheme == 'myapp' && uri.host == 'checkout') {
+        if (uri.path == '/success') {
+          final sessionId = uri.queryParameters['session_id'];
+          _handlePaymentSuccess(sessionId);
+        } else if (uri.path == '/canceled') {
+          _handlePaymentCanceled();
+        }
+      }
+    });
+  }
+
+  Future<void> _startCheckout() async {
+    setState(() => _isLoading = true);
+
+    try {
+      // 1. Call your own backend server to create a Checkout Session
+      final response = await http.post(
+        Uri.parse('https://your-api.com/api/create-checkout-session'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'amount': widget.amount,
+          'order_id': widget.orderId,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+      final checkoutUrl = Uri.parse(data['url']);
+
+      // 2. Open in Custom Tabs / Safari View Controller
+      if (await canLaunchUrl(checkoutUrl)) {
+        await launchUrl(checkoutUrl, mode: LaunchMode.inAppBrowserView);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to start checkout: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _handlePaymentSuccess(String? sessionId) {
+    Navigator.of(context).pop({'status': 'success', 'session_id': sessionId});
+  }
+
+  void _handlePaymentCanceled() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Payment was canceled.')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Complete Payment')),
+      body: Center(
+        child: _isLoading
+            ? const CircularProgressIndicator()
+            : ElevatedButton(
+                onPressed: _startCheckout,
+                child: Text('Pay ${widget.amount} XAF with Pursar'),
+              ),
+      ),
+    );
+  }
+}
+```
+
+---
+
+## React Native Integration Example
+
+```typescript
+import React, { useEffect } from 'react';
+import { Button, Linking, View, ActivityIndicator, Alert } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
+
+export function PursarCheckoutButton({ amount, orderId }: { amount: number; orderId: string }) {
+  const [loading, setLoading] = React.useState(false);
+
+  useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      const url = new URL(event.url);
+      if (url.hostname === 'checkout' && url.pathname === '/success') {
+        InAppBrowser.close();
+        Alert.alert('Payment Successful', `Order #${orderId} has been confirmed!`);
+      }
+    };
+
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    return () => subscription.remove();
+  }, [orderId]);
+
+  const handlePay = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('https://your-api.com/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, orderId }),
+      });
+      const session = await res.json();
+
+      if (await InAppBrowser.isAvailable()) {
+        await InAppBrowser.open(session.url, {
+          dismissButtonStyle: 'cancel',
+          preferredBarTintColor: '#1E293B',
+          preferredControlTintColor: 'white',
+        });
+      } else {
+        Linking.openURL(session.url);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Unable to initiate payment.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0284c7" />
+      ) : (
+        <Button title={`Pay ${amount} XAF`} onPress={handlePay} />
+      )}
+    </View>
+  );
+}
+```
+
+---
+
+## Mobile Network Latency & Best Practices
+
+1. **Telecom USSD Timeout Window**: In Africa, telecom networks (MTN, Orange, Moov) typically allow between **15 and 45 seconds** for the customer to input their PIN on the popup prompt. Ensure your frontend polling interval is between **3 to 5 seconds** and displays a countdown timer with instructions: *"Please check your phone screen and authorize with your Mobile Money PIN"*.
+2. **Handle Disconnected Sessions**: Never assume the customer will keep the mobile app open after approving the PIN. Background state restoration and webhook fulfillment are mandatory.
+3. **Idempotency Keys**: Mobile network connections frequently drop. Always send unique `Idempotency-Key` headers on charge retry attempts to guarantee zero double-charges.

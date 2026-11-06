@@ -1,16 +1,19 @@
 ---
-title: "Purchase & Provisioning"
-description: "How to resell and provision eSIMs to your customers."
+title: "eSIM Purchase & Provisioning"
+description: "Order, collect payment, and instantly provision QR-code cellular profiles for your customers."
 ---
 
-Reselling an eSIM through PaveWay is a 3-step process involving an order creation, a payment, and a final provisioning step.
+Reselling an eSIM profile via Pursar is a streamlined 3-step workflow: reserve inventory, collect payment, and provision the cellular SM-DP+ profile.
 
-## Step 1: Create an Order
-When a customer chooses a plan, create an order in PaveWay. This reserves the inventory and gives you an `order_id`.
+---
+
+## Step 1: Create an eSIM Order
+
+Reserve the inventory and lock in the wholesale package price:
 
 ```bash
-curl -X POST https://api.pavewaygroup.com/v1/esim/orders \
-  -H "Authorization: Bearer sk_test_..." \
+curl -X POST https://api.viarosandbox.com/v1/esim/orders \
+  -u sk_test_live_secret_key_12345: \
   -H "Content-Type: application/json" \
   -d '{
     "package_id": "pkg_world_5gb_30d",
@@ -18,29 +21,52 @@ curl -X POST https://api.pavewaygroup.com/v1/esim/orders \
   }'
 ```
 
-The response will include the `order_id` and the `total_amount` required to complete the purchase.
+### Response
+
+```json
+{
+  "order_id": "esim_ord_0192384a_5512",
+  "package_id": "pkg_world_5gb_30d",
+  "amount": 12500,
+  "currency": "XAF",
+  "status": "pending_payment"
+}
+```
+
+---
 
 ## Step 2: Collect Payment
-Use the [Payment Collection API](/guides/payments/overview) to charge the customer. Ensure you store the `payment_ref` returned by PaveWay after a successful transaction.
 
-> [!TIP]
-> You can use the `order_id` as the `merchant_reference` in the PaymentIntent to keep your records linked.
+Charge the customer using [Pursar Hosted Checkout](/guides/payments/web-integration) or the [Direct Mobile Money API](/guides/payments/overview) passing `order_id` as the `merchant_reference`.
 
-## Step 3: Confirm & Provision
-Once the payment is successful, call the confirmation endpoint to provision the eSIM. PaveWay will immediately generate the eSIM QR code.
+---
+
+## Step 3: Confirm Payment & Generate eSIM QR Code
+
+Once payment succeeds, confirm the order to immediately provision the cellular profile:
 
 ```bash
-curl -X POST https://api.pavewaygroup.com/v1/esim/orders/confirm-payment \
-  -H "Authorization: Bearer sk_test_..." \
+curl -X POST https://api.viarosandbox.com/v1/esim/orders/confirm-payment \
+  -u sk_test_live_secret_key_12345: \
+  -H "Content-Type: application/json" \
   -d '{
-    "order_id": "ord_123...",
-    "payment_ref": "pay_xyz..."
+    "order_id": "esim_ord_0192384a_5512",
+    "payment_ref": "tx_9182374b12c8"
   }'
 ```
 
-## Delivering the eSIM
+### Response
 
-The response from Step 3 contains the `activation_code` and a `qr_code_url`. You should display the QR code to your user or send it to them via email.
+```json
+{
+  "order_id": "esim_ord_0192384a_5512",
+  "status": "provisioned",
+  "iccid": "8988211000001234567",
+  "matching_id": "TEST-1234-5678",
+  "smdp_address": "smdp.pursar.com",
+  "activation_code": "LPA:1$smdp.pursar.com$TEST-1234-5678",
+  "qr_code_url": "https://api.viarosandbox.com/v1/esim/qr/esim_ord_0192384a_5512.png"
+}
+```
 
-- **QR Code**: The user can scan this in their phone's settings to install the eSIM.
-- **Manual Discovery**: Some phones also support automatic discovery if you provide the SM-DP+ address and matching ID found in the response.
+Display the `qr_code_url` on screen or email it to the traveler for instant 1-click device installation.

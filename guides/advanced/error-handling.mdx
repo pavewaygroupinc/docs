@@ -1,90 +1,74 @@
 ---
 title: "Error Handling"
-description: "Understand PaveWay's error codes and how to handle them gracefully."
+description: "Understand Pursar's Stripe-standard error types, HTTP status codes, and recovery procedures."
 ---
 
-PaveWay uses standard HTTP response codes to indicate the success or failure of an API request. In general:
-- Codes in the `2xx` range indicate success.
-- Codes in the `4xx` range indicate an error that failed given the information provided (e.g., a required parameter was omitted, a charge failed, etc.).
-- Codes in the `5xx` range indicate an error with PaveWay's servers.
+Pursar uses standard HTTP response codes to indicate the outcome of an API request. Every error response includes a standardized, machine-readable JSON `error` object structured identically to Stripe's error specification.
 
-## internal Error Object
+---
 
-When an error occurs, the response body will contain a standardized `error` object.
+## The Pursar Error Object
 
 ```json
 {
   "error": {
     "type": "invalid_request_error",
-    "code": "parameter_invalid",
-    "message": "The 'amount' field must be a positive integer.",
-    "param": "amount",
-    "request_id": "req_abc123"
+    "code": "parameter_missing",
+    "message": "Field required",
+    "param": "customer_name",
+    "request_id": "req_019318b2_8291"
   }
 }
 ```
 
 ### Attributes
 
-<ResponseField name="type" type="string" required>
-  The type of error returned. Can be one of: `api_error`, `card_error`, `idempotency_error`, or `invalid_request_error`.
-</ResponseField>
-
-<ResponseField name="code" type="string">
-  For some errors that could be handled programmatically, a short string indicating the error code reported.
-</ResponseField>
-
-<ResponseField name="message" type="string" required>
-  A human-readable message providing more details about the error. For card errors, these messages can be shown to your users.
-</ResponseField>
-
-<ResponseField name="param" type="string">
-  If the error is parameter-specific, the parameter related to the error. For example, for a card error, this could be `card_number`.
-</ResponseField>
-
-<ResponseField name="request_id" type="string">
-  The ID of the request that generated the error. Helpful for debugging and support.
-</ResponseField>
+| Attribute | Type | Description |
+| :--- | :--- | :--- |
+| `type` | string | The category of error. One of `api_error`, `authentication_error`, `card_error`, `idempotency_error`, `invalid_request_error`, or `rate_limit_error`. |
+| `code` | string | Short programmatic identifier for the error (e.g. `insufficient_funds`, `parameter_missing`). |
+| `message` | string | Human-readable explanation of what went wrong. Safe for debugging and developer logging. |
+| `param` | string | The specific request field that triggered the error (if applicable). |
+| `request_id` | string | Unique trace identifier for the request. Share this with Pursar Support for instant log correlation. |
 
 ---
 
-## Error Types
+## HTTP Status Codes
 
-| Type | Description |
-| :--- | :--- |
-| `api_error` | Unexpected internal server error. Retry the request. |
-| `card_error` | Card errors are the most common type of error when processing payments. They occur when the user's card issuer declines a charge, or if the card is improperly authenticated. |
-| `idempotency_error` | Occurs when an `Idempotency-Key` is reused for a different request payload. keys must be unique. |
-| `invalid_request_error` | Occurs when a request has invalid parameters. |
-| `authentication_error` | Occurs when authentication fails (missing or invalid API key). |
-| `rate_limit_error` | Occurs if you make too many requests too quickly. |
+| Code | Status | Meaning & Recommended Action |
+| :--- | :--- | :--- |
+| **`200 OK`** | Success | Request succeeded. |
+| **`201 Created`** | Created | Resource successfully created (e.g. Checkout Session, Customer). |
+| **`400 Bad Request`** | Bad Request | The request was unacceptable, often due to missing a required parameter. |
+| **`401 Unauthorized`** | Unauthorized | No valid API key provided or API key revoked. |
+| **`402 Payment Required`** | Payment Failed | The payment attempt was declined (e.g. insufficient funds or card declined). |
+| **`403 Forbidden`** | Forbidden | The API key doesn't have permissions for the requested operation. |
+| **`404 Not Found`** | Not Found | The requested resource doesn't exist. |
+| **`409 Conflict`** | Conflict | Concurrent request collision with the same idempotency key or duplicate resource. |
+| **`422 Unprocessable`** | Validation Error | Payload structure is syntactically valid JSON, but fields violate schema rules. |
+| **`429 Too Many Requests`** | Rate Limited | Too many requests hit the API too quickly. Slow down using exponential backoff. |
+| **`500, 502, 503, 504`** | Server Errors | Something went wrong on Pursar's end. Retry safely using an `Idempotency-Key`. |
 
 ---
 
-## Common Error Codes
+## Common Error Codes Reference
 
-### Payment & Card Errors
+### Payment & Mobile Money Errors
 
-| Code | Description |
-| :--- | :--- |
-| `card_declined` | The card has been declined. |
-| `insufficient_funds` | The card has insufficient funds to complete the purchase. |
-| `expired_card` | The card has expired. |
-| `incorrect_cvc` | The CVC code is incorrect. |
-| `processing_error` | An error occurred while processing the card. |
-| `provider_error` | The upstream payment provider is experiencing issues. |
+| Error Code | HTTP | Description & User Action |
+| :--- | :--- | :--- |
+| `card_declined` | 402 | The card was declined by the issuing bank. Ask customer for a different card. |
+| `insufficient_funds` | 402 | The customer's mobile money wallet or card has insufficient balance. |
+| `telecom_timeout` | 402 | The customer did not enter their Mobile Money PIN within the 45-second operator window. |
+| `operator_down` | 502 | The telecom operator (MTN, Orange) is experiencing gateway downtime. Fallback to [Manual USSD](/guides/payments/manual-payments). |
+| `expired_card` | 402 | The card's expiration date has passed. |
+| `incorrect_cvc` | 402 | The card's security code is invalid. |
 
-### Validation Errors
+### Validation & Integration Errors
 
-| Code | Description |
-| :--- | :--- |
-| `parameter_invalid` | One or more parameters are invalid. Check the `param` field or `details` array (for validation errors). |
-| `parameter_missing` | A required parameter is missing. |
-| `resource_not_found` | The requested resource ID (e.g., customer, payment intent) does not exist. |
-| `resource_already_exists` | You are trying to create a resource that already exists (e.g., duplicate customer email). |
-
-### Idempotency Errors
-
-| Code | Description |
-| :--- | :--- |
-| `idempotency_key_in_use` | The idempotency key has already been used for a different request. |
+| Error Code | HTTP | Description & User Action |
+| :--- | :--- | :--- |
+| `parameter_missing` | 400 / 422 | A required parameter was omitted from the request body. |
+| `parameter_invalid` | 400 / 422 | A parameter value is malformed (e.g. invalid phone number E.164 format). |
+| `idempotency_key_in_use` | 409 | The `Idempotency-Key` was submitted with different payload parameters. |
+| `resource_not_found` | 404 | The requested customer ID, session ID, or transaction ID does not exist. |

@@ -1,33 +1,66 @@
 ---
 title: "Idempotency"
-description: "Safely retry requests without double-charging your customers."
+description: "Safely retry API requests without double-charging your customers or creating duplicate orders."
 ---
 
-Idempotency is a core feature of the PaveWay API that ensures you don't accidentally perform the same operation twice. This is especially critical for payment-related operations like creating a [PaymentIntent](/api-reference/payments/create-intent) or a [Refund](/api-reference/payments/refunds).
+Pursar supports Stripe-standard idempotency on all mutating API endpoints (`POST` and `PATCH`). An idempotent request guarantees that performing the same operation multiple times produces the exact same outcome as performing it once, preventing duplicate charges when mobile connections drop or network timeouts occur.
 
-## How it Works
+---
 
-To make an idempotent request, include the `Idempotency-Key` header with a unique identifier for that specific operation.
+## How It Works
 
-```bash
-curl https://api.pavewaygroup.com/v1/payment-intents \
-  -H "Idempotency-Key: CREATED_AT_ORD_12345" \
-  -H "Authorization: Bearer sk_test_..." \
-  ...
+To make an idempotent request, attach an `Idempotency-Key` header containing a unique string (typically a UUID v4):
+
+```http
+POST https://api.viarosandbox.com/v1/charges/mobile-money
+Authorization: Basic base64(sk_test_...:)
+Content-Type: application/json
+Idempotency-Key: 9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d
 ```
 
-1. **First Request**: PaveWay processes the request and saves the response.
-2. **Subsequent Requests**: If you send another request with the same `Idempotency-Key`, PaveWay bypasses execution and returns the **exact same response** as the first request (including the status code).
+```bash
+curl -X POST https://api.viarosandbox.com/v1/charges/mobile-money \
+  -u sk_test_live_secret_key_12345: \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -d '{
+    "amount": 25000,
+    "currency": "XAF",
+    "phone": "+237671234567",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "description": "Premium Service License #104",
+    "merchant_reference": "ORD_2026_104"
+  }'
+```
 
-## Expiration
+### Execution Lifecycle
 
-Idempotency keys are automatically expired after **24 hours**. After this window, a request with a previously used key will be treated as a new, fresh request.
+1. **First Attempt**: Pursar verifies the key, acquires an atomic lock on the key, executes the payment or creation logic, and saves the HTTP status code and response payload into the distributed cache.
+2. **Subsequent Attempts**: If your application resends the identical request with the same `Idempotency-Key` (e.g. after a client-side network drop), Pursar intercepts the request and replays the cached response immediately, returning an `Idempotent-Replay: true` header. No second transaction is billed.
+3. **Concurrent Collisions**: If a second request arrives while the first request is still being processed by the telecom network, Pursar safely returns an HTTP `409 Conflict` error indicating that an operation is currently in flight with this key.
+
+---
+
+## Error Handling & Key Mismatches
+
+If you send a request with an `Idempotency-Key` that was previously used for a **different request body or different URL path**, Pursar rejects the request with an `idempotency_error`:
+
+```json
+{
+  "error": {
+    "type": "idempotency_error",
+    "code": "idempotency_key_in_use",
+    "message": "Keys for idempotent requests can only be used with the original request parameters they were first submitted with.",
+    "param": "idempotency_key"
+  }
+}
+```
+
+---
 
 ## Best Practices
 
-- **Use Unique Identifiers**: A common pattern is to use a combination of the merchant order ID and the timestamp or attempt count.
-- **Failures & Retries**: If you receive a network error (e.g., Timeout), retry the request with the **same** key. If you receive a validation error (400), fix the payload and use a **new** key.
-- **Scope**: Idempotency keys are scoped to your Secret Key. Keys used in your **test** environment do not collide with **live** environment keys.
-
-> [!IMPORTANT]
-> Idempotency only applies to `POST` and `PATCH` requests. `GET` and `DELETE` requests are idempotent by nature (they don't change state or their repeated application has no extra effect).
+- **Generate UUIDs per Business Intent**: Generate a fresh UUID v4 for each unique business action (e.g. at the moment the customer taps "Pay"). Do not hardcode or generate keys based solely on timestamp.
+- **TTL Window**: Pursar persists idempotency records for **24 hours**. After 24 hours, the key expires and can be reused.
+- **Safe Automatic Retries**: In your SDK or client HTTP layer, configure automatic retries for transient HTTP errors (`408 Request Timeout`, `502 Bad Gateway`, `503 Service Unavailable`, `504 Gateway Timeout`) using the same idempotency key and exponential backoff.

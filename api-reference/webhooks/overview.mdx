@@ -1,9 +1,9 @@
 ---
 title: "Webhooks Overview"
-description: "Receive real-time notifications when events happen in your PaveWay account."
+description: "Receive real-time notifications when events happen in your Pursar account."
 ---
 
-Webhooks allow you to receive real-time notifications about events in your PaveWay account. When an event occurs (e.g., a payment succeeds or an eSIM is provisioned), PaveWay sends an HTTP POST request to your configured webhook endpoint.
+Webhooks allow you to receive real-time notifications about events in your Pursar account. When an event occurs (e.g., a payment succeeds or an eSIM is provisioned), Pursar sends an HTTP POST request to your configured webhook endpoint.
 
 ## Configuration
 
@@ -11,7 +11,7 @@ You can configure your webhook endpoints in the **Business Dashboard**.
 
 1.  **URL**: Must be an `https://` endpoint.
 2.  **Events**: Select the specific events you want to listen to (e.g., `payment.succeeded`).
-3.  **Secret**: PaveWay provides a **Signing Secret** (`whsec_...`) for each endpoint to verify request authenticity.
+3.  **Secret**: Pursar provides a **Signing Secret** (`whsec_...`) for each endpoint to verify request authenticity.
 
 ## Common Event Types
 
@@ -24,7 +24,7 @@ You can configure your webhook endpoints in the **Business Dashboard**.
 
 ## Retry Policy
 
-If your server returns anything other than a `2xx` status code, PaveWay will retry the notification with exponential backoff:
+If your server returns anything other than a `2xx` status code, Pursar will retry the notification with exponential backoff:
 
 - Retries occur up to 10 times over 24 hours.
 - If an endpoint fails consistently for 7 days, it will be automatically disabled.

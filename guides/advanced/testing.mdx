@@ -1,45 +1,73 @@
 ---
-title: "Testing & Sandbox"
-description: "Safely test your integration using our sandbox environment."
+title: "Testing & Sandbox Environment"
+description: "Simulate Mobile Money prompts, card 3D Secure challenges, webhook events, and error scenarios in Pursar's live sandbox."
 ---
 
-PaveWay provides a robust test environment where you can simulate successful and failed payments without moving any real money.
-
-## Test Environment
-
-- **Dashboard**: Use the "Test Mode" toggle in your Merchant Dashboard to view test transactions.
-- **Sandbox URL**: `https://paveway-gateway-adwfci84.uc.gateway.dev/v1`
-- **Authentication**: All requests to the sandbox must use your `sk_test_...` key.
+Pursar provides a fully functional, live cloud sandbox environment where you can safely test every payment rail, telecom operator response, and business API without moving real money.
 
 ---
 
-## Test Payment Methods
+## Sandbox Endpoints & Authentication
 
-### Cards
-
-Use the following cards to test different scenarios:
-
-| Card Number | Result |
-| :--- | :--- |
-| `4242 4242 4242 4242` | Success (Any CVV / Future Date) |
-| `4000 0000 0000 0002` | Insufficient Funds (Simulates 402 Error) |
-| `4000 0000 0000 0005` | 3D-Secure Required (Triggers OTP Modal) |
-
-### Mobile Money
-
-Simulate prompts by providing specific phone number patterns:
-
-| Phone Number | Network | Result |
+| Resource | Sandbox (Test Mode) | Production (Live Mode) |
 | :--- | :--- | :--- |
-| `237600000001` | MTN | Success after 10s delay. |
-| `237600000002` | ORANGE | Immediate Success. |
-| `237600000003` | MTN | Insufficient Funds (Failure). |
+| **API Base URL** | `https://api.viarosandbox.com/v1` | `https://api.pursar.com/v1` |
+| **Hosted Checkout** | `https://checkout.viarosandbox.com/pay/{session_id}` | `https://checkout.pursar.com/pay/{session_id}` |
+| **Business Dashboard** | `https://business.viarosandbox.com` | `https://business.pursar.com` |
+| **Secret API Keys** | Starts with `sk_test_...` | Starts with `sk_live_...` |
+| **Public / Publishable Keys** | Starts with `pk_test_...` | Starts with `pk_live_...` |
+| **Webhook Secrets** | Starts with `whsec_...` | Starts with `whsec_...` |
+
+> [!IMPORTANT]
+> All requests to the sandbox API must authenticate with your test secret key (`sk_test_...`) using HTTP Basic Auth (`-u sk_test_...:`) or a Bearer token (`Authorization: Bearer sk_test_...`). Test keys and live keys are cryptographically separated; test keys cannot modify live data.
 
 ---
 
-## Simulating Webhooks
+## Test Mobile Money Numbers
 
-You can use the **Webhook Tester** in your dashboard to send mock events to your server. This allows you to verify your [Signature Verification](/api-reference/webhooks/verification) logic without making an actual API call.
+Simulate USSD prompt delivery across Central and West African telecom operators by providing these dedicated test numbers:
 
-> [!TIP]
-> Use a tool like **ngrok** or **https://webhook.site** to tunnel your local server to a public URL so it can receive PaveWay's test webhooks during development.
+| Phone Number | Operator / Country | Simulated Behavior |
+| :--- | :--- | :--- |
+| `+237671234567` | MTN Cameroon | **Success**: Instant approval; completes in < 2 seconds. |
+| `+237691234567` | Orange Cameroon | **Success**: Instant approval; completes in < 2 seconds. |
+| `+2250102030405` | MTN Côte d'Ivoire | **Success**: Instant approval. |
+| `+2250708091011` | Orange Côte d'Ivoire | **Success**: Instant approval. |
+| `+233241234567` | MTN Ghana | **Success**: Instant approval. |
+| `+254712345678` | M-Pesa Kenya | **Success**: Instant approval. |
+| `+237670000002` | MTN Cameroon | **Insufficient Funds**: Returns status `failed` with code `insufficient_funds`. |
+| `+237670000003` | MTN Cameroon | **Timeout / User Cancellation**: Simulates customer canceling PIN dialog. |
+| `+237670000004` | MTN Cameroon | **Operator Down**: Simulates telecom downtime and triggers manual USSD recommendation. |
+
+---
+
+## Test Credit & Debit Cards
+
+Test global Visa and Mastercard charge flows, 3D Secure two-factor authentication, and decline codes using these test card numbers:
+
+| Card Number | Expiration / CVC | Simulated Result | Error Code |
+| :--- | :--- | :--- | :--- |
+| `4242 4242 4242 4242` | Any future date / Any 3 digits | **Success** (Stripe & Flutterwave standard) | None |
+| `4000 0000 0000 0002` | Any future date / Any 3 digits | **Card Declined (Insufficient Funds)** | `card_declined` |
+| `4000 0000 0000 0119` | Any future date / Any 3 digits | **Card Expired** | `expired_card` |
+| `4000 0000 0000 0127` | Any future date / Any 3 digits | **Incorrect CVC** | `incorrect_cvc` |
+| `4000 0000 0000 0341` | Any future date / Any 3 digits | **3D Secure Challenge Triggered** (Renders OTP dialog) | Requires Action |
+
+---
+
+## Simulating and Verifying Webhooks
+
+During local development, you can forward Pursar sandbox webhooks to your local development machine using [ngrok](https://ngrok.com) or [webhook.site](https://webhook.site):
+
+```bash
+# Start your local server on port 3000
+npm run dev
+
+# Expose port 3000 to the public web
+ngrok http 3000
+```
+
+1. Copy your ngrok HTTPS forwarding URL (e.g. `https://a1b2c3d4.ngrok-free.app/api/webhooks`).
+2. Add this URL under **Developers → Webhooks** in your [Business Dashboard](https://business.viarosandbox.com/developers/webhooks).
+3. Copy the signing secret (`whsec_...`) and add it to your local environment variables.
+4. Trigger test charges using `POST /v1/charges/mobile-money` or `POST /v1/checkout/sessions` and verify that your local endpoint receives and validates the `X-Pursar-Signature` header.

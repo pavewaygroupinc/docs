@@ -1,12 +1,12 @@
-# PaveWay Local Development & Integrated Testing Guide
+# Pursar Local Development & Integrated Testing Guide
 
-This guide provides step-by-step instructions for running and testing the **PaveWay Business Dashboard (`web/business`)** alongside the decomposed backend microservices in a local development environment.
+This guide provides step-by-step instructions for running and testing the **Pursar Business Dashboard (`web/business`)** alongside the decomposed backend microservices in a local development environment.
 
 ---
 
 ## 1. System Architecture & Routing Topology
 
-In production, the **Google Cloud External Application Load Balancer** (`paveway-url-map`) terminates traffic at `https://api.pavewaygroup.com/merchant/v1` and routes requests by URL path prefix to independent Cloud Run microservices.
+In production, the **Google Cloud External Application Load Balancer** (`pursar-url-map`) terminates traffic at `https://api.pursar.com/merchant/v1` and routes requests by URL path prefix to independent Cloud Run microservices.
 
 In local development, the **Local Dev API Gateway (`services/dev_gateway.py`)** runs on port **`8082`** and replicates this exact routing behavior, allowing the Nuxt 3 frontend to communicate with all backend services through a single unified origin without CORS friction.
 
@@ -59,10 +59,10 @@ graph TD
 
 ```bash
 # Start local MongoDB with Docker (if not running locally)
-docker run -d -p 27017:27017 --name paveway-mongo mongo:7.0
+docker run -d -p 27017:27017 --name pursar-mongo mongo:7.0
 
 # Start local Redis with Docker (optional)
-docker run -d -p 6379:6379 --name paveway-redis redis:7-alpine
+docker run -d -p 6379:6379 --name pursar-redis redis:7-alpine
 ```
 
 ### 3.2 Frontend Environment (`web/business/.env`)
@@ -81,7 +81,7 @@ NUXT_AUTH0_DOMAIN=your-tenant.auth0.com
 NUXT_AUTH0_ISSUER=https://your-tenant.auth0.com/
 NUXT_AUTH0_CLIENT_ID=your_client_id
 NUXT_AUTH0_CLIENT_SECRET=your_client_secret
-NUXT_AUTH0_AUDIENCE=https://api.pavewaygroup.com
+NUXT_AUTH0_AUDIENCE=https://api.pursar.com
 NUXT_NEXTAUTH_SECRET=your_dev_secret_key_at_least_32_characters_long
 ```
 
@@ -93,7 +93,7 @@ NUXT_NEXTAUTH_SECRET=your_dev_secret_key_at_least_32_characters_long
 Use the automated launcher script to start all 6 microservices and the Dev Gateway together:
 
 ```bash
-cd /Users/mbirrambangalain/projects/paveway/dev/services
+cd ~/projects/pursar/services
 chmod +x scripts/start_dev_services.sh
 ./scripts/start_dev_services.sh
 ```
@@ -105,31 +105,31 @@ If you are developing or debugging a specific microservice, run each service in 
 
 ```bash
 # Terminal 1: Merchant Core API (Port 8081)
-cd /Users/mbirrambangalain/projects/paveway/dev/services/merchant
+cd ~/projects/pursar/services/merchant
 APP_PORT=8081 python3 -m uvicorn app:app --port 8081 --reload
 
 # Terminal 2: Billing Service (Port 8083)
-cd /Users/mbirrambangalain/projects/paveway/dev/services/billing
+cd ~/projects/pursar/services/billing
 APP_PORT=8083 python3 -m uvicorn app:app --port 8083 --reload
 
 # Terminal 3: Commerce Service (Port 8084)
-cd /Users/mbirrambangalain/projects/paveway/dev/services/commerce
+cd ~/projects/pursar/services/commerce
 APP_PORT=8084 python3 -m uvicorn app:app --port 8084 --reload
 
 # Terminal 4: Marketplace Service (Port 8085)
-cd /Users/mbirrambangalain/projects/paveway/dev/services/marketplace
+cd ~/projects/pursar/services/marketplace
 APP_PORT=8085 python3 -m uvicorn app:app --port 8085 --reload
 
 # Terminal 5: Developer Platform (Port 8086)
-cd /Users/mbirrambangalain/projects/paveway/dev/services/developer-platform
+cd ~/projects/pursar/services/developer-platform
 APP_PORT=8086 python3 -m uvicorn app:app --port 8086 --reload
 
 # Terminal 6: Analytics Service (Port 8087)
-cd /Users/mbirrambangalain/projects/paveway/dev/services/analytics
+cd ~/projects/pursar/services/analytics
 APP_PORT=8087 python3 -m uvicorn app:app --port 8087 --reload
 
 # Terminal 7: Dev API Gateway (Port 8082)
-cd /Users/mbirrambangalain/projects/paveway/dev/services
+cd ~/projects/pursar/services
 PORT=8082 python3 -m uvicorn dev_gateway:app --port 8082 --reload
 ```
 
@@ -137,7 +137,7 @@ PORT=8082 python3 -m uvicorn dev_gateway:app --port 8082 --reload
 In a separate terminal window:
 
 ```bash
-cd /Users/mbirrambangalain/projects/paveway/dev/web/business
+cd ~/projects/pursar/web/business
 npm run dev
 ```
 
@@ -184,7 +184,7 @@ Interactive OpenAPI Swagger UI documentation is available for each service:
 The automated test suite verifies all 67 API endpoints called across the 15 repositories and stores in `web/business` against the microservices:
 
 ```bash
-cd /Users/mbirrambangalain/projects/paveway/dev/services/integration_tests
+cd ~/projects/pursar/services/integration_tests
 chmod +x run_contract_tests.sh
 ./run_contract_tests.sh
 ```

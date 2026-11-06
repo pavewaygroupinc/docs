@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "PaveWay Payment Gateway",
+    "title": "Pursar Payment Gateway",
     "version": "0.1.0"
   },
   "paths": {
@@ -142,11 +142,11 @@
   },
   "servers": [
     {
-      "url": "https://api.pavewaygroup.com",
+      "url": "https://api.pursar.com",
       "description": "Production (Live)"
     },
     {
-      "url": "https://paveway-gateway-adwfci84.uc.gateway.dev",
+      "url": "https://api.viarosandbox.com",
       "description": "Sandbox (Test)"
     }
   ]
