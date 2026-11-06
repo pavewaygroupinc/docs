@@ -180,9 +180,14 @@ async function chargeMobileMoney() {
 
 ## 2. Server-Side Verification
 
-After a charge is initiated or when a customer returns from checkout, verify the transaction status using your secret key:
+After a charge is initiated or when a customer returns from checkout, verify the transaction status using your secret key. Following Stripe-standard developer ergonomics, you can query by **Transaction ID**, **Gateway Payment Reference** (`pay_...`), or your original **Merchant Reference** (`ORD_2026_104`):
 
 ```bash
+# Verify directly using your own custom merchant order reference:
+curl -X GET https://api.viarosandbox.com/v1/transactions/ORD_2026_104 \
+  -u sk_test_live_secret_key_12345:
+
+# Or verify by gateway payment reference or transaction ID:
 curl -X GET https://api.viarosandbox.com/v1/transactions/tx_9182374b12c8 \
   -u sk_test_live_secret_key_12345:
 ```

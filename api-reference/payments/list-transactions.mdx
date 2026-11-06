@@ -10,6 +10,14 @@ Returns a paginated list of transactions. Transactions are returned in reverse c
 
 ### Query Parameters
 
+<ParamField query="merchant_reference" type="string">
+  Filter transactions by your custom order ID or reference string (e.g. `inv_ref_104`, `ord_8932`).
+</ParamField>
+
+<ParamField query="payment_ref" type="string">
+  Filter transactions by gateway payment reference (e.g. `pay_fe0f4aa967bf`).
+</ParamField>
+
 <ParamField query="limit" type="integer" default="10">
   A limit on the number of objects to be returned. Limit can range between `1` and `100`.
 </ParamField>
@@ -38,8 +46,8 @@ Returns a paginated list of transactions. Transactions are returned in reverse c
 ```bash cURL
 curl -G https://api.viarosandbox.com/v1/transactions \
   -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG: \
-  -d limit=10 \
-  -d status=successful
+  -d merchant_reference=inv_ref_104 \
+  -d limit=10
 ```
 
 ```python Python
@@ -47,7 +55,7 @@ import requests
 
 url = "https://api.viarosandbox.com/v1/transactions"
 auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
-params = {"limit": 10, "status": "successful"}
+params = {"merchant_reference": "inv_ref_104", "limit": 10}
 
 response = requests.get(url, auth=auth, params=params)
 print(response.json())
@@ -63,8 +71,8 @@ async function listTransactions() {
       password: ''
     },
     params: {
-      limit: 10,
-      status: 'successful'
+      merchant_reference: 'inv_ref_104',
+      limit: 10
     }
   });
 

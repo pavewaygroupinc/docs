@@ -1,33 +1,44 @@
 ---
 title: "Retrieve a Transaction"
 api: "GET /transactions/{id}"
-description: "Retrieve complete audit and financial details for a specific transaction."
+description: "Retrieve complete audit and financial details for a specific transaction by transaction ID, payment reference, or merchant reference."
 ---
 
-Retrieves the details of an existing transaction using its unique identifier (`tx_...`).
+Retrieves the details of an existing transaction. In accordance with Stripe-standard developer ergonomics and cross-border payment practices, you can query by any of the following identifiers in the URL path:
+1. **Transaction ID** (e.g. `060b061c-730a-4ba6-a71d-d34a51e37cb7` or `tx_...`)
+2. **Gateway Payment Reference** (e.g. `pay_fe0f4aa967bf` or `PWG_...`)
+3. **Your Custom Merchant Reference** (e.g. `ord_test_104`, `inv_ref_104`)
 
 ---
 
 ### Path Parameters
 
 <ParamField path="id" type="string" required>
-  The unique ID of the transaction to retrieve.
+  The unique transaction identifier, gateway payment reference (`pay_...`), or merchant reference (`merchant_reference`) of the transaction to retrieve.
 </ParamField>
 
 ---
 
 ### Code Examples
 
+#### 1. Retrieve by Merchant Reference (Stripe Standard)
+
 <CodeGroup>
-```bash cURL
-curl -G https://api.viarosandbox.com/v1/transactions/tx_4a1b2c3d4e5f \
+```bash cURL (Merchant Reference)
+curl -G https://api.viarosandbox.com/v1/transactions/inv_ref_104 \
+  -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
+```
+
+```bash cURL (Payment Reference)
+curl -G https://api.viarosandbox.com/v1/transactions/pay_fe0f4aa967bf \
   -u sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG:
 ```
 
 ```python Python
 import requests
 
-url = "https://api.viarosandbox.com/v1/transactions/tx_4a1b2c3d4e5f"
+# Retrieve using your custom merchant reference or gateway payment reference
+url = "https://api.viarosandbox.com/v1/transactions/inv_ref_104"
 auth = ("sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG", "")
 
 response = requests.get(url, auth=auth)
@@ -38,7 +49,8 @@ print(response.json())
 const axios = require('axios');
 
 async function getTransaction() {
-  const response = await axios.get('https://api.viarosandbox.com/v1/transactions/tx_4a1b2c3d4e5f', {
+  // Query by custom merchant reference, payment reference, or UUID
+  const response = await axios.get('https://api.viarosandbox.com/v1/transactions/inv_ref_104', {
     auth: {
       username: 'sk_test_uLsofsae3tB9Izwgeuy0Mxbh4JIxUPSG',
       password: ''
@@ -58,19 +70,26 @@ getTransaction();
 
 ```json
 {
-  "id": "tx_4a1b2c3d4e5f",
-  "object": "transaction",
-  "amount": "25000",
-  "currency": "XAF",
-  "status": "successful",
-  "payment_method": "mobile_money",
-  "phone": "+237671234567",
-  "customer_name": "Amara Diallo",
-  "customer_email": "amara@example.com",
-  "description": "Invoice #104 Premium License",
-  "merchant_reference": "inv_ref_104",
-  "fee": 500,
-  "net_amount": 24500,
-  "created_at": "2026-11-06T11:30:00Z"
+  "status_code": 200,
+  "data": {
+    "id": "060b061c-730a-4ba6-a71d-d34a51e37cb7",
+    "object": "payment_intent",
+    "status": "succeeded",
+    "amount": 25000.0,
+    "charged_amount": 25000.0,
+    "net_amount": 24500.0,
+    "currency": "XAF",
+    "fee": 500.0,
+    "fee_bearer": "merchant",
+    "payment_method": "mobile_money",
+    "reference": "pay_fe0f4aa967bf",
+    "payment_ref": "pay_fe0f4aa967bf",
+    "merchant_reference": "inv_ref_104",
+    "description": "Invoice #104 Premium License",
+    "customer_name": "Amara Diallo",
+    "customer_email": "amara@example.com",
+    "environment": "test",
+    "created_at": 1730892000.0
+  }
 }
 ```
